@@ -1,0 +1,193 @@
+package com.want.service.impl;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.want.dto.ErpOrderDetailDto;
+import com.want.dto.ErpOrderDto;
+import com.want.dto.OrderDetailDto;
+import com.want.dto.OrderDto;
+import com.want.dto.OrderInfoDto;
+import com.want.dto.Organization;
+import com.want.mapper.OrderMapper;
+import com.want.po.PackageInfo;
+import com.want.service.IOrderService;
+import com.want.util.WebServiceUtil;
+import com.want.vo.Order;
+
+@Service 
+public class OrderServiceImpl implements IOrderService{
+	
+	@Autowired
+    private OrderMapper orderMapper;
+	
+	List<Organization> orgList=null;
+	public List<Organization> orgList(String empId) {
+		List<Organization> list=new ArrayList<>();
+		orgList=null;
+		//根据人员查询所属组织及下级组织
+		orgList=orderMapper.orgList(empId); 
+		if(orgList!=null&&orgList.size()>0) {
+			//获取人员最高级组织节点
+			Organization org=orgList.get(0);
+			Organization orgJson=new Organization();
+			orgJson.setOrgId(org.getOrgId());
+			orgJson.setOrgName(org.getOrgName());
+			orgJson.setOrgLevel(org.getOrgLevel());
+			orgJson.setParentOrgID(org.getParentOrgID());
+			list.add(orgJson);
+			String orgId=org.getOrgId();
+			//根据最高级组织节点向下递归
+			recursive(orgId,orgJson);
+		}
+		return list; 
+	}
+	
+	public void recursive(String parentOrgID,Organization orgJson) { 
+		List<Organization> list1=new ArrayList<>();
+		//从1开始循环人员所属组织
+		for(int i=1;i<orgList.size();i++) {
+			Organization org=orgList.get(i);
+			if(parentOrgID.equals(org.getParentOrgID())) {
+				Organization childOrg=new Organization();
+				childOrg.setOrgId(org.getOrgId());
+				childOrg.setOrgName(org.getOrgName());
+				childOrg.setOrgLevel(org.getOrgLevel());
+				childOrg.setParentOrgID(org.getParentOrgID());
+				list1.add(childOrg);
+				String orgId=org.getOrgId();
+				//子节点再递归查下级节点
+				recursive(orgId,childOrg);
+			}
+		}
+		//将父节点所属子节点集和赋值到父节点元素内
+		orgJson.setChildOrg(list1);
+	}
+	
+	public String cancelOrder(String orderId) {
+		long flag=orderMapper.queryERPOrderByCode(orderId);
+		if(flag==0) {
+			orderMapper.updateOrderStatus(orderId);
+			orderMapper.updateERPOrderStatus(orderId);
+			return "取消成功";
+		}else {
+			return "取消失败";
+		}
+	}
+	
+	public List<PackageInfo> packageList(){
+		return orderMapper.packageList();
+	}
+	
+	@Override
+	public List<OrderInfoDto> queryOrderByCondition(Order order) {
+		if (null == order) {
+			//return null;
+		}
+		return orderMapper.queryOrderByCondition(order);
+	}
+
+	@Override
+	public OrderDto getOrderInfos(String orderCode) {
+		if ( null == orderCode || orderCode.trim().length()<= 0) {
+			//return null;
+		}
+		OrderDto item=orderMapper.getOrderInfos(orderCode);
+		List<OrderDetailDto> subList=orderMapper.getOrderInfoDetails(item.getOrderCode());
+		item.setNeedOrederInfoDetailDtoList(subList);
+		return item;
+	}
+	
+	@Override
+	public List<ErpOrderDto> getErpOrders(String orderCode) {
+		if ( null == orderCode || orderCode.trim().length()<= 0) {
+			//return null;
+		}
+		 List<ErpOrderDto> orderList=orderMapper.getErpOrders(orderCode);
+		 if(null != orderList && orderList.size()>0 ) {
+			 for (ErpOrderDto item : orderList) {
+				 item.setPurchaseOrederInfoDetailList(orderMapper.getErpOrderInfoDetails(item.getSid()));
+			}
+		 }		 
+	    return orderList;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<ErpOrderDto> updateErpOrders(List<String> sids) {
+		if ( null == sids || sids.size()<= 0) {
+			return null;
+		}
+		List<ErpOrderDto> retResult = new ArrayList<ErpOrderDto>();
+		for (String sid : sids) {
+			 List<ErpOrderDto> orderList=orderMapper.getErpOrderBySid(sid);
+			 if(null != orderList && orderList.size()>0 ) {
+				 for (ErpOrderDto item : orderList) {
+					List<ErpOrderDetailDto> erpOrderDetailList=orderMapper.getErpOrderInfoDetails(item.getSid());
+					// 发送资料并接收返回值
+			        Map<String, Object> retuenMap =WebServiceUtil.sendZRFCSD026(item, erpOrderDetailList);
+			        // erp 返回订单头信息
+			        Map<String, String> otvbakMap= (Map<String, String>) retuenMap.get("otvbakMap");
+				    // 将erp 返回 erp订单编码，状态，错误原因根据订单编码更新
+					orderMapper.updateErpOrder(otvbakMap);	    
+				    // 将erp 返回 erp订单详情编码，状态，错误原因根据订单明细编码更新
+					orderMapper.updateErpOrderDetail((List<Map<String, String>>) retuenMap.get("otvbapMap"));
+					String erpOrderCode=otvbakMap.get("erpOrderCode");
+					String desciption=( erpOrderCode != null && erpOrderCode.trim().length()>0 )?erpOrderCode:otvbakMap.get("desciption");
+					item.setOrderStatus(otvbakMap.get("orderStatus"));
+					item.setFeedbackInfor(desciption);
+					item.setPurchaseOrederInfoDetailList(orderMapper.getErpOrderInfoDetails(item.getSid()));
+					retResult.add(item);
+				}
+			 }	
+		}
+		return retResult;
+	}
+	
+	@SuppressWarnings("unchecked")
+	void  test() {		 
+	    	ErpOrderDto erpOrderDto=new ErpOrderDto();
+			erpOrderDto.setOrderCode("21000001201909100003"); //客户采购订单编号
+			erpOrderDto.setSaleCompnayId("C821");             //销售组织
+			erpOrderDto.setDistributionChannelId("CM");       //分销渠道
+			erpOrderDto.setProductGroupId("F8");              //产品组
+			erpOrderDto.setSapBuyerId("11037469");            //客户编号
+			erpOrderDto.setSapReceiverId("11037469");         //送达方
+			erpOrderDto.setOrderTime("2019-09-19");           //单日期
+			erpOrderDto.setMemo("需求订单数据");              //订单备注
+			
+			List<ErpOrderDetailDto> erpOrderDetailList =new ArrayList<ErpOrderDetailDto>();
+			ErpOrderDetailDto erpOrderDetailDto=new ErpOrderDetailDto();
+			erpOrderDetailDto.setLineNumber("1");               //采购订单的行项目号
+			erpOrderDetailDto.setProductId("306106167802");     //物料号
+			erpOrderDetailDto.setStockAddresId("1001");         //库存地点
+			erpOrderDetailDto.setSalePrice("15");               //开单单价
+			erpOrderDetailDto.setUnit("CAR");                   //数量的单位
+			erpOrderDetailDto.setCount("10");                   //开单数量
+			erpOrderDetailDto.setSumAmount("150");              //开单金额
+			erpOrderDetailDto.setItemMemo("第一笔明细");        //行备注信息
+			erpOrderDetailList.add(erpOrderDetailDto);
+			
+		    erpOrderDetailDto=new ErpOrderDetailDto();
+		    erpOrderDetailDto.setLineNumber("2");               //采购订单的行项目号
+		    erpOrderDetailDto.setProductId("306107010100");     //物料号
+		    erpOrderDetailDto.setStockAddresId("1001");         //库存地点
+		    erpOrderDetailDto.setSalePrice("12");               //开单单价
+		    erpOrderDetailDto.setUnit("CAR");                   //数量的单位
+		    erpOrderDetailDto.setCount("11");                   //开单数量
+		    erpOrderDetailDto.setSumAmount("120");              //开单金额
+		    erpOrderDetailDto.setItemMemo("第二笔明细");        //行备注信息
+		    erpOrderDetailList.add(erpOrderDetailDto);
+		    // 发送资料并接收返回值
+	        Map<String, Object> retuenMap =WebServiceUtil.sendZRFCSD026(erpOrderDto, erpOrderDetailList);
+		    // 将erp 返回 erp订单编码，状态，错误原因根据订单编码更新
+			orderMapper.updateErpOrder((Map<String, String>) retuenMap.get("otvbakMap"));	    
+		    // 将erp 返回 erp订单详情编码，状态，错误原因根据订单明细编码更新
+			orderMapper.updateErpOrderDetail((List<Map<String, String>>) retuenMap.get("otvbapMap"));
+			
+	 }
+	
+}

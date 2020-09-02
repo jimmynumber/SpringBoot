@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper.ResetOrderMapper">
+
+   <select id="getErpOrder" resultType="com.want.dto.ErpOrderDto" parameterType="java.lang.String">
+		select DISTINCT
+		a.sid,
+		a.order_code as orderCode,
+		(SELECT  ATTRIBUTE_VALUE FROM SALESGROUP2_RC.ATTRIBUTE_INFO attr where attr.STATUS='1' and attr.ATTRIBUTE_ID='ERP_ORDER_STATUS' and attr.ATTRIBUTE_KEY = a.ORDER_STATUS ) as orderStatus,
+		nvl(a.ERP_ORDER_CODE,a.DESCIPTION) as feedbackInfor,
+		to_char(b.order_time,'yyyy-mm-dd') as orderTime,
+		A.sale_company as saleCompnayId,
+		C.sale_compnay_name as saleCompnayName,
+		A.distribution_channel as distributionChannelId,
+		D.distribution_channel_name as distributionChannelName,
+		A.product_group as productGroupId,
+		E.product_group_name as productGroupName,
+		F.factory as companyId,
+		F.factory_name as companyName,
+		B.sap_buyer_code as sapBuyerId,
+		F.SAP_BUYER_NAME as sapBuyerName,
+		B.sap_receiver_code as sapReceiverId,
+		G.SAP_RECEIVER_NAME as sapReceiverName,
+		A.memo as memo,
+		A.SUM_AMOUNT  AS totalAmount
+		,A.DESCIPTION as desciption
+		,A.UPDATE_USER as updateUser
+		,to_char(A.UPDATE_DATE,'yyyy/mm/dd hh24:mi:ss') as updateDate
+		,a.ORDER_TYPE as orderType
+		,A.OPENORDER_DATE as openOrderDate
+		FROM SALESGROUP2_RC.erp_order A
+		LEFT JOIN SALESGROUP2_RC.order_info B ON A.order_code=B.order_code
+		LEFT JOIN SALESGROUP2_RC.channel_info C ON C.sale_compnay_id=A.sale_company
+		LEFT JOIN SALESGROUP2_RC.channel_info D ON D.distribution_channel_id=A.distribution_channel
+		LEFT JOIN SALESGROUP2_RC.channel_info E ON E.product_group_id=A.product_group
+		LEFT JOIN SALESGROUP2_RC.customer F ON F.CUSTOMER_CODE=B.SAP_BUYER_CODE and F.SALE_COMPANY =A.SALE_COMPANY  and F.DISTRIBUTION_CHANNEL =A.DISTRIBUTION_CHANNEL and F.PRODUCT_GROUP =A.PRODUCT_GROUP
+		LEFT JOIN SALESGROUP2_RC.CUSTOMER_RECEVER_ADDRESSES G ON G.SAP_RECEIVER_CODE=B.sap_receiver_code and F.CUSTOMER_CODE=G.CUSTOMER_CODE
+		where A.ERP_ORDER_CODE is not null
+	    <if test="erpOrderCode != null and erpOrderCode != '' "> 
+			and A.ERP_ORDER_CODE =#{erpOrderCode,jdbcType=VARCHAR}    
+		</if>
+		<if test="sid != null and sid != '' "> 
+            and A.SID =#{sid,jdbcType=VARCHAR}    
+        </if>  
+   </select>
+   
+   <select id="getErpOrderInfoDetails" resultType="com.want.dto.ErpOrderDetailDto" parameterType="java.lang.String">
+		select DISTINCT
+		a.sid as lineNumber,
+		a.product_id as productId,
+		a.product_name as productName,
+		g.STOCK_ADDRES_ID as stockAddresId,
+		g.STOCK_ADDRES_DESC as stockAddres,
+		TO_CHAR( a.sale_price,'FM999999999990D09')  as salePrice,
+		TO_CHAR( a.discount_price,'FM999999999990D09')  as discountPrice,
+		a.count as count,
+		a.unit as unit,
+		a.UNIT_NAME as unitName,
+		TO_CHAR( a.sum_amount,'FM999999999990D09') as sumAmount,
+		a.DESCIPTION as itemMemo,
+		A.ORDER_LINE_TYPE as orderLineType,
+		A.PROMOTE_ID as promoteId,
+		A.PROMOTE_POLICY_DESC as promotePolicyDesc
+		FROM SALESGROUP2_RC.erp_order_detail A
+		LEFT JOIN SALESGROUP2_RC.erp_order C on C.sid=A.erp_order_sid
+		LEFT JOIN SALESGROUP2_RC.order_info E on E.order_code=C.order_code
+		LEFT JOIN SALESGROUP2_RC.customer F on F.customer_code=E.SAP_BUYER_CODE and F.SALE_COMPANY = C.SALE_COMPANY  and F.DISTRIBUTION_CHANNEL = C.DISTRIBUTION_CHANNEL and F.PRODUCT_GROUP = C.PRODUCT_GROUP
+		LEFT JOIN SALESGROUP2_RC.company_stock_address G on G.SELL_COMPNAY_ID=F.factory
+		<where>
+		    <if test="erpOrderSid != null and erpOrderSid != '' "> 
+				 A.ERP_ORDER_SID =#{erpOrderSid,jdbcType=VARCHAR}    
+			</if>			
+		</where>
+		ORDER BY a.product_name
+   </select>
+   
+   <update id="updateErpOrder" parameterType="java.util.Map">
+        update SALESGROUP2_RC.erp_order
+        <set>
+                 order_status = null,ERP_ORDER_CODE=null,
+                 SUM_AMOUNT = (select sum(SUM_AMOUNT) from ERP_ORDER_DETAIL where  ERP_ORDER_SID=#{sid,jdbcType=VARCHAR})
+              <if test="empInfo != null and empInfo != '' ">
+                  ,update_user =#{empInfo,jdbcType=VARCHAR}
+              </if>
+              <if test="currentDate != null and currentDate != '' ">
+                  ,update_date = to_date( #{currentDate,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss') 
+              </if>
+        </set>
+        where sid = #{sid,jdbcType=VARCHAR}
+   </update>
+   
+   <update id="updateOrder" parameterType="java.util.Map">
+        update SALESGROUP2_RC.ORDER_INFO
+        <set>
+                 order_status = &apos;W&apos;
+              <if test="empInfo != null and empInfo != '' ">
+                  ,update_user =#{empInfo,jdbcType=VARCHAR}
+              </if>
+              <if test="currentDate != null and currentDate != '' ">
+                  ,update_date = to_date( #{currentDate,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss') 
+              </if>
+        </set>
+        where ORDER_CODE = #{orderCode,jdbcType=VARCHAR}
+   </update>
+   
+   <select id="getErpOrderBySid" resultType="com.want.dto.ErpOrderDto" parameterType="java.lang.String">
+        select DISTINCT
+		a.sid,
+		a.order_code as orderCode,
+		(SELECT  ATTRIBUTE_VALUE FROM SALESGROUP2_RC.ATTRIBUTE_INFO attr where attr.STATUS='1' and attr.ATTRIBUTE_ID='ERP_ORDER_STATUS' and attr.ATTRIBUTE_KEY = a.ORDER_STATUS ) as orderStatus,
+		a.ERP_ORDER_CODE as feedbackInfor,
+		to_char(b.order_time,'yyyy-mm-dd') as orderTime,
+		A.sale_company as saleCompnayId,
+		C.sale_compnay_name as saleCompnayName,
+		A.distribution_channel as distributionChannelId,
+		D.distribution_channel_name as distributionChannelName,
+		A.product_group as productGroupId,
+		E.product_group_name as productGroupName,
+		F.factory as companyId,
+		F.factory_name as companyName,
+		B.sap_buyer_code as sapBuyerId,
+		F.SAP_BUYER_NAME as sapBuyerName,
+		B.sap_receiver_code as sapReceiverId,
+		G.SAP_RECEIVER_NAME as sapReceiverName,
+		a.memo as memo,
+		A.SUM_AMOUNT  AS totalAmount
+		,A.DESCIPTION as desciption
+		,A.UPDATE_USER as updateUser
+		,to_char(A.UPDATE_DATE,'yyyy/mm/dd hh24:mi:ss') as updateDate
+		,a.OPENORDER_DATE as openOrderDate
+		FROM SALESGROUP2_RC.erp_order A
+		LEFT JOIN SALESGROUP2_RC.order_info B ON A.order_code=B.order_code
+		LEFT JOIN SALESGROUP2_RC.PACKAGE P ON A.PACKAGE_ID=P.PACKAGE_ID
+		LEFT JOIN SALESGROUP2_RC.channel_info C ON C.sale_compnay_id=A.sale_company
+		LEFT JOIN SALESGROUP2_RC.channel_info D ON D.distribution_channel_id=A.distribution_channel
+		LEFT JOIN SALESGROUP2_RC.channel_info E ON E.product_group_id=A.product_group
+		LEFT JOIN SALESGROUP2_RC.customer F ON F.CUSTOMER_CODE=B.SAP_BUYER_CODE and F.SALE_COMPANY =A.SALE_COMPANY  and F.DISTRIBUTION_CHANNEL =A.DISTRIBUTION_CHANNEL and F.PRODUCT_GROUP =A.PRODUCT_GROUP
+		LEFT JOIN SALESGROUP2_RC.CUSTOMER_RECEVER_ADDRESSES G ON G.SAP_RECEIVER_CODE=B.sap_receiver_code and F.CUSTOMER_CODE=G.CUSTOMER_CODE
+		 <where>
+            <if test="sid != null and sid != '' "> 
+                 a.sid =#{sid,jdbcType=VARCHAR}    
+            </if>           
+        </where>
+   </select>
+   
+   <insert id="insertOrderReset" parameterType="com.want.po.OrderReset">
+  		INSERT INTO ORDER_RESET (ORDER_CODE,ERP_ORDER_CODE,RESET_REASON,CREATE_USER,CREATE_DATE) 
+	    	VALUES(#{orderReset.orderCode},#{orderReset.erpOrderCode},#{orderReset.reaetReason}
+	    	,#{orderReset.createUser},#{orderReset.createDate})
+  	</insert>
+  	
+  	<update id="updateErpOrderDetail" parameterType="java.lang.String">
+  		update ERP_ORDER_DETAIL set REBATE_DISCOUNT_PRICE=DISCOUNT_PRICE,SUM_AMOUNT=(DISCOUNT_PRICE*COUNT)
+  		where ERP_ORDER_SID = #{sid,jdbcType=VARCHAR}
+  	</update>
+  	
+  	<update id="updateCustomerRebate" parameterType="java.lang.String">
+	  	update CUSTOMER_REBATE set REMAIN_REBATE_AMOUNT = (REMAIN_REBATE_AMOUNT+(select REBATE_AMOUNT from CUSTOMER_REBATE_RECORD 
+		where ERP_ORDER_SID = #{sid,jdbcType=VARCHAR} and  rownum = 1))
+		where SID = (select distinct CUSTOMER_REBATE_SID from CUSTOMER_REBATE_RECORD where ERP_ORDER_SID = #{sid,jdbcType=VARCHAR})
+	</update>
+	
+	<insert id="insertCustomerRebateRecord" parameterType="java.lang.String">
+  		INSERT INTO CUSTOMER_REBATE_RECORD (CUSTOMER_REBATE_SID,REBATE_AMOUNT
+                   ,ERP_ORDER_SID,REBATE_RECORD_TYPE,MEMO,CREATE_USER,CREATE_DATE) 
+            select CUSTOMER_REBATE_SID,REBATE_AMOUNT,ERP_ORDER_SID,'1' as REBATE_RECORD_TYPE
+            ,'重置订单' as MEMO,#{createUser,jdbcType=VARCHAR} as CREATE_USER,sysdate as CREATE_DATE from CUSTOMER_REBATE_RECORD 
+where ERP_ORDER_SID = #{sid,jdbcType=VARCHAR} and  rownum = 1
+  	</insert>
+   
+</mapper> 

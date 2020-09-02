@@ -1,0 +1,285 @@
+package com.want.wantworld.service.impl;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.google.gson.Gson;
+import com.want.wantworld.dao.LoginTokenMapper;
+import com.want.wantworld.entity.LoginToken;
+import com.want.wantworld.service.ICryptoService;
+import com.want.wantworld.utils.PropertiesUtil;
+import com.want.wantworld.utils.ValidateHelper;
+import com.want.wantworld.vo.LoginVo;
+
+import net.minidev.json.JSONObject;
+
+@Service
+public class LoginServiceImpl implements com.want.wantworld.service.ILoginService {
+
+	@Autowired
+	private LoginTokenMapper loginDao;
+	
+	@Autowired
+	private ICryptoService cryptoService;
+
+	@Override
+	public boolean validateLogin(String empId) {
+		LoginToken loginToken = getLoginTokenByEmpid(empId);
+		return (loginToken == null) ? false : true;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Map<String, String> login(String empId, String password) {
+		Map<String, String> map = new HashMap<String, String>();
+
+		String url = PropertiesUtil.getProperty("api.url");
+		String content = this.authenticate(url, empId, password);
+
+		// 返回值 string转换为map方便获取
+		Map<String, Object> auth = new HashMap<String, Object>();
+		auth = new Gson().fromJson(content, auth.getClass());
+		String userName = (String) auth.get("userName");
+
+		if (content != null && content.contains("200")) {
+			// 返回成功登录信息
+			map.put("code", "200");
+			map.put("message", "登录成功！");
+			map.put("userName", userName);
+		} else if (content != null && content.contains("401")) {
+			// 返回成功登录信息
+			map.put("code", "401");
+			map.put("message", "账号密码验证失败！");
+			map.put("userName", "");
+		}
+
+		return map;
+	}
+
+	@Override
+	public Map<String, String> loginToken(LoginVo loginVo, Map<String, String> map) {
+		String empId=loginVo.getUserId();
+		try {
+			// 根据人员工号获取登陆信息
+			LoginToken loginToken = getLoginTokenByEmpid(empId);
+			// 判断登陆信息是否存在
+			if (loginToken != null) {
+				// 存在,更新token,过期时间,更新时间
+				loginToken.setToken(this.getUuid());
+				loginToken.setDeadline(getAfterDate());
+				loginToken.setUpdateDate(new Date());
+				loginToken.setDeviceid(loginVo.getDeviceid());//  设备Id  
+				loginToken.setOsType(loginVo.getOsType());    //  设备类型 
+				loginToken.setBaseBand(loginVo.getBaseBand());//  基带版本
+
+				// 更新登录信息
+				loginDao.updateByPrimaryKeySelective(loginToken);
+			} else {
+				// 不存在,实例化登录信息
+				loginToken = new LoginToken();
+				loginToken.setSid(getRandomSid());
+				loginToken.setToken(this.getUuid());
+				loginToken.setEmpId(empId);
+				loginToken.setEmpName(map.get("userName"));
+				loginToken.setLoginState("1");
+				loginToken.setDeadline(getAfterDate());
+				loginToken.setCreateDate(new Date());
+				loginToken.setDeviceid(loginVo.getDeviceid());//  设备Id  
+				loginToken.setOsType(loginVo.getOsType());    //  设备类型 
+				loginToken.setBaseBand(loginVo.getBaseBand());//  基带版本
+				// 保存登录信息
+				loginDao.insertSelective(loginToken);
+			}
+
+			// 返回成功登录信息
+			//map.put("loginId", empId);
+			map.put("token", loginToken.getToken());
+			map.remove("code");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			map.put("code", "401");
+			map.put("message", "生成token失败！");
+			map.put("loginId", empId);
+			map.put("token", "");
+
+		}
+
+		return map;
+	}
+
+	@Override
+	public Map<String, String> logoutToken(String empId) {
+		empId = cryptoService.getDecryptText(empId);
+		Map<String, String> map = new HashMap<String, String>();
+
+		// 根据人员工号获取登陆信息
+		LoginToken loginToken = getLoginTokenByEmpid(empId);
+
+		// 判断登陆信息是否存在
+		if (loginToken != null) {
+			// 存在,更新token,过期时间,更新时间
+			loginToken.setToken("");
+			loginToken.setLoginState("0");
+			loginToken.setDeadline(null);
+			loginToken.setUpdateDate(new Date());
+
+			// 修改登录信息
+			loginDao.updateByPrimaryKeySelective(loginToken);
+
+			// 返回登出信息
+			map.put("code", "200");
+			map.put("message", "成功！");
+
+		} else {
+			map.put("code", "404");
+			map.put("message", "token不存在！");
+		}
+
+		return map;
+	}
+
+	@Override
+	public boolean checkToken(String empId, String token) {
+		// 根据empId和token获取登陆信息
+		Boolean bool = false;
+		LoginToken loginToken = getLoginTokenByEmpid(empId, token);
+		if (loginToken != null) {
+			// 判断过期时间是否大于当前系统时间
+			if (null != loginToken.getDeadline() && loginToken.getDeadline().getTime() > new Date().getTime()) {
+				// 存在,更新token,过期时间,更新时间
+				loginToken.setDeadline(getAfterDate());
+				loginToken.setUpdateDate(new Date());
+
+				// 保存登录信息
+				loginDao.updateByPrimaryKeySelective(loginToken);
+				bool = true;
+			}
+		}
+		return bool;
+
+	}
+
+	/**
+	 * 通过接口验证登陆
+	 * 
+	 * @param userId password
+	 * @return String
+	 */
+	public String authenticate(String reqUrl, String userid, String password) {
+		// 构建jason参数
+		JSONObject jsonParam = new JSONObject();
+		jsonParam.put("employeeId", userid);
+		jsonParam.put("password", password);
+
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(300 * 1000).setConnectTimeout(300 * 1000)
+				.build();
+		HttpPost post = new HttpPost(reqUrl);
+
+		post.setConfig(requestConfig);
+		post.setHeader("Content-Type", "application/json;charset=utf-8");
+		StringEntity postingString = new StringEntity(jsonParam.toJSONString(), "utf-8");
+		post.setEntity(postingString);
+		HttpResponse response;
+		String content = "";
+		try {
+			// 调用接口
+			response = httpClient.execute(post);
+			// 获取返回值
+			content = EntityUtils.toString(response.getEntity());
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println(content);
+		return content;
+	}
+
+	@Override
+	public Map<String, String> validateToken(String token) {
+		Map<String, String> resultMap = new HashMap<String, String>();
+		// 根据empId和token获取登陆信息
+		Boolean bool = false;
+		LoginToken loginToken = getLoginTokenByEmpid(null, token);
+		if (loginToken != null) {
+			// 判断过期时间是否大于当前系统时间
+			if (null != loginToken.getDeadline() && loginToken.getDeadline().getTime() > new Date().getTime()) {
+				// 存在,更新token,过期时间,更新时间
+				loginToken.setDeadline(getAfterDate());
+				loginToken.setUpdateDate(new Date());
+				// 保存登录信息
+				loginDao.updateByPrimaryKeySelective(loginToken);
+				bool = true;
+			}
+		}
+		if (bool) {
+			resultMap.put("code", "200");
+			resultMap.put("message", "成功！");
+			resultMap.put("empId", loginToken.getEmpId());
+			resultMap.put("empName", loginToken.getEmpName());
+
+		} else {
+			resultMap.put("code", "404");
+			resultMap.put("message", "token不存在或已失效！");
+		}	
+		return resultMap;
+	}
+
+	/**
+	 * 生成UUID
+	 * 
+	 * @return String
+	 */
+	public String getUuid() {
+		return UUID.randomUUID().toString();
+	}
+
+	public Date getAfterDate() {
+		return new Date(System.currentTimeMillis() + 60 * 60 * 1000);
+	}
+
+	private LoginToken getLoginTokenByEmpid(String empId, String token) {
+		if (empId == null && token == null ) {
+			return null;
+		}
+		LoginToken loginToken = new LoginToken();
+		loginToken.setEmpId(empId);
+		loginToken.setToken(token);
+		List<LoginToken> list = loginDao.selectByParam(loginToken);
+		return loginToken = ValidateHelper.isEmpty(list) ? null : list.get(0);
+	}
+
+	private LoginToken getLoginTokenByEmpid(String empId) {
+		return getLoginTokenByEmpid(empId, null);
+	}
+	public static BigDecimal getRandomSid() {
+        String str = new SimpleDateFormat("yyMMddHHmmss").format(new Date());
+        int rannum = (int) (new Random().nextDouble() * (99999 - 10000 + 1)) + 10000;// 获取5位随机数
+        return new BigDecimal(rannum + str);// 当前时间
+    }
+
+	@Override
+	public LoginToken getLoginByToken(String token) {
+		return getLoginTokenByEmpid(null, token);
+	}
+		
+}

@@ -1,0 +1,73 @@
+package com.want.vo;
+import java.io.Serializable;
+
+
+@SuppressWarnings("serial")
+public class IT_EKPO implements Serializable{
+
+    private String LINE_NUMBER;
+    private String ORDER_CODE;
+    private String PRODUCT_CODE;
+    private String PRICE;
+    private String UNIT;
+    private String COUNT;
+    private String SALE_TYPE;
+    private String SUM_AMOUNT;
+    private String ITEM_MEMO;
+    
+	public String getLINE_NUMBER() {
+		return LINE_NUMBER;
+	}
+	public void setLINE_NUMBER(String lINE_NUMBER) {
+		LINE_NUMBER = lINE_NUMBER;
+	}
+	public String getORDER_CODE() {
+		return ORDER_CODE;
+	}
+	public void setORDER_CODE(String oRDER_CODE) {
+		ORDER_CODE = oRDER_CODE;
+	}
+	public String getPRODUCT_CODE() {
+		return PRODUCT_CODE;
+	}
+	public void setPRODUCT_CODE(String pRODUCT_CODE) {
+		PRODUCT_CODE = pRODUCT_CODE;
+	}
+	public String getPRICE() {
+		return PRICE;
+	}
+	public void setPRICE(String pRICE) {
+		PRICE = pRICE;
+	}
+	public String getUNIT() {
+		return UNIT;
+	}
+	public void setUNIT(String uNIT) {
+		UNIT = uNIT;
+	}
+	public String getCOUNT() {
+		return COUNT;
+	}
+	public void setCOUNT(String cOUNT) {
+		COUNT = cOUNT;
+	}
+	public String getSALE_TYPE() {
+		return SALE_TYPE;
+	}
+	public void setSALE_TYPE(String sALE_TYPE) {
+		SALE_TYPE = sALE_TYPE;
+	}
+	public String getSUM_AMOUNT() {
+		return SUM_AMOUNT;
+	}
+	public void setSUM_AMOUNT(String sUM_AMOUNT) {
+		SUM_AMOUNT = sUM_AMOUNT;
+	}
+	public String getITEM_MEMO() {
+		return ITEM_MEMO;
+	}
+	public void setITEM_MEMO(String iTEM_MEMO) {
+		ITEM_MEMO = iTEM_MEMO;
+	}
+	
+}

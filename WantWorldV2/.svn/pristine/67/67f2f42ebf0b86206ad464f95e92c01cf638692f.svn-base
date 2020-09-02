@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.wantworld.dao.AccessTokenDao">
+  <select id="selectAccessToken" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from WANTWORLDV2.ACCESS_TOKEN
+  </select>
+  <insert id="insertSelectiveSeq" parameterType="com.want.wantworld.entity.AccessToken">
+    insert into WANTWORLDV2.ACCESS_TOKEN
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        SID,
+      <if test="token != null">
+        TOKEN,
+      </if>
+      <if test="createDate != null">
+        CREATE_DATE,
+      </if>
+      <if test="endDate != null">
+        END_DATE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+        ACCESS_TOKEN_SEQ.nextval,
+      <if test="token != null">
+        #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endDate != null">
+        #{endDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+</mapper>

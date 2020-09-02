@@ -1,0 +1,14 @@
+server.servlet.context-path=/oms_interface
+#logging.level.com.want=debug
+#mybatis.mapper-locations=classpath:/common/mybatis/*/*.xml
+#mybatis.configuration.map-underscore-to-camel-case=true
+#mybatis.configuration.default-fetch-size=100
+#mybatis.configuration.default-statement-timeout=30
+
+
+spring.profiles.active=test
+
+
+spring.jmx.enabled=false
+
+

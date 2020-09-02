@@ -1,0 +1,283 @@
+package com.want.service.impl;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.UUID;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.google.gson.Gson;
+import com.want.dto.FunctionInfo;
+import com.want.mapper.LoginMapper;
+import com.want.po.LoginToken;
+import com.want.service.ILoginService;
+import com.want.util.PropertiesUtil;
+
+import net.minidev.json.JSONObject;
+
+@Service 
+public class LoginServiceImpl implements ILoginService{
+	
+	@Autowired
+    private LoginMapper loginDao;
+	
+	@Override
+	public boolean validateLogin(String empId) {
+		String userId = loginDao.validateLogin(empId);
+		if (userId == null || "".equals(userId)) {
+			return false;
+		}
+		return true;
+		
+	}
+	
+	@Override
+	public Map<String, String> login(String empId, String password) {
+		Map<String, String> map = new HashMap<String, String>();
+		
+		String url = PropertiesUtil.getProperty("api.url");
+		String content = this.authenticate(url, empId, password);
+		
+		//返回值 string转换为map方便获取
+        Map<String, Object> auth = new HashMap<String, Object>();
+        auth = new Gson().fromJson(content, auth.getClass());
+        String userName =(String) auth.get("userName");
+		
+		if (content != null && content.contains("200")) {
+			// 返回成功登录信息
+			map.put("code", "200");
+			map.put("message", "登录成功！");
+			map.put("userName", userName);
+		} else if (content != null && content.contains("401")) {
+			// 返回成功登录信息
+			map.put("code", "401");
+			map.put("message", "账号密码验证失败！");
+			map.put("userName", "");
+		}
+        
+        return map;
+	}
+
+	@Override
+	public Map<String, String> loginToken(String empId, Map<String, String> map) {
+		try {
+			//根据人员工号获取登陆信息
+			LoginToken loginToken = loginDao.getTokenByEmpId(empId);
+	
+			//判断登陆信息是否存在
+			if (loginToken != null) {
+				// 存在,更新token,过期时间,更新时间
+				loginToken.setToken(this.getUuid());
+				loginToken.setDeadLine(StrToDate("9999-12-31 23:59:59"));
+				loginToken.setUpdateDate(new Date());
+				
+				// 保存登录信息
+				loginDao.updateLoginToken(loginToken);
+			} else {
+				// 不存在,实例化登录信息
+				loginToken = new LoginToken();
+				loginToken.setToken(this.getUuid());
+				loginToken.setEmpId(empId);
+				loginToken.setLoginState("1");
+				loginToken.setDeadLine(StrToDate("9999-12-31 23:59:59"));
+				loginToken.setCreateDate(new Date());
+				
+				// 保存登录信息
+				loginDao.saveLoginToken(loginToken);
+			}
+			
+			// 返回成功登录信息
+			map.put("loginId", empId);
+			map.put("token", loginToken.getToken());
+			
+		} catch(Exception ex) {
+			map.put("code", "401");
+			map.put("message", "生成token失败！");
+			map.put("loginId", empId);
+			map.put("token", "");
+			
+		}
+		
+		return map;
+	}
+	
+	@Override
+	public Map<String, String> logoutToken(String empId) {
+		Map<String, String> map = new HashMap<String, String>();
+		
+		//根据人员工号获取登陆信息
+		LoginToken loginToken = loginDao.getTokenByEmpId(empId);
+
+		//判断登陆信息是否存在
+		if (loginToken != null) {
+			// 存在,更新token,过期时间,更新时间
+			loginToken.setToken("");
+			loginToken.setLoginState("0");
+			loginToken.setDeadLine(null);
+			loginToken.setUpdateDate(new Date());
+			
+			// 修改登录信息
+			loginDao.updateLoginToken(loginToken);
+			
+			// 返回登出信息
+			map.put("code", "200");
+			map.put("message", "成功！");
+			
+		} else {
+			map.put("code", "404");
+			map.put("message", "token不存在！");
+		}
+		
+		return map;
+	}
+	
+	
+	@Override
+	public boolean checkToken(String empId, String token) {
+		//根据empId和token获取登陆信息
+		Boolean bool = false;
+		LoginToken loginToken = loginDao.getTokenByEmpIdAndToken(empId, token);
+		if (loginToken != null) {
+			
+			// 判断过期时间是否大于当前系统时间
+			if ( null != loginToken.getDeadLine() && loginToken.getDeadLine().getTime() > new Date().getTime() ) {
+				bool = true;
+			} 
+		} 
+		return bool;
+		
+	}
+	
+	/**
+	 * 通过接口验证登陆
+	 * @param userId password
+	 * @return String
+	 */
+	public String authenticate (String reqUrl, String userid, String password) {
+		//构建jason参数
+		JSONObject jsonParam = new JSONObject(); 
+	    jsonParam.put("employeeId", userid);
+	    jsonParam.put("password", password);
+
+	    CloseableHttpClient httpClient = HttpClients.createDefault();
+	    RequestConfig requestConfig = RequestConfig.custom()
+                .setSocketTimeout(300 * 1000)
+                .setConnectTimeout(300 * 1000)
+                .build();
+		HttpPost post = new HttpPost(reqUrl);
+	    
+	    post.setConfig(requestConfig);
+        post.setHeader("Content-Type","application/json;charset=utf-8");
+        StringEntity postingString = new StringEntity(jsonParam.toJSONString(), "utf-8");
+        post.setEntity(postingString);
+        HttpResponse response;
+        String content = "";
+		try {
+			//调用接口
+			response = httpClient.execute(post);
+			//获取返回值
+	        content = EntityUtils.toString(response.getEntity());
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        System.out.println(content);
+        return content;
+	}
+
+	/**
+	 * 生成UUID
+	 * @return String
+	 */
+	public String getUuid(){
+		UUID uuid = UUID.randomUUID();
+		return uuid.toString();
+	}
+	
+	/**
+	 * 
+	 字符串转换成日期
+	 * 
+	 * @param str
+	 * @return date
+	 */
+	public Date StrToDate(String str) {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		format.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+		Date date = null;
+		try {
+			date = format.parse(str);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return date;
+	}
+
+	
+	List<FunctionInfo> functionList=null;
+	public List<FunctionInfo> functionList(String empId){
+		functionList=null;
+		List<FunctionInfo> list=new ArrayList<>();
+		//根据人员查询所属菜单及下级菜单
+		functionList=loginDao.functionList(empId); 
+		if(functionList!=null&&functionList.size()>0) {
+			//获取人员最高级组织节点
+			FunctionInfo function=functionList.get(0);
+			FunctionInfo functionJson=new FunctionInfo();
+			functionJson.setFunctionId(function.getFunctionId());
+			functionJson.setFunctionName(function.getFunctionName());
+			functionJson.setFunctionLevel(function.getFunctionLevel());
+			functionJson.setFunctionUrl(function.getFunctionUrl());
+			functionJson.setParentFunctionId(function.getParentFunctionId());
+			list.add(functionJson);
+			String functionId=function.getFunctionId();
+			//根据最高级菜单节点向下递归
+			recursive(functionId,functionJson);
+		}
+		return list; 
+	}
+	
+	public void recursive(String parentFunctionId,FunctionInfo functionJson) { 
+		List<FunctionInfo> list1=new ArrayList<>();
+		//从1开始循环人员所属菜单
+		for(int i=1;i<functionList.size();i++) {
+			FunctionInfo function=functionList.get(i);
+			if(parentFunctionId.equals(function.getParentFunctionId())) {
+				FunctionInfo childFunction=new FunctionInfo();
+				childFunction.setFunctionId(function.getFunctionId());
+				childFunction.setFunctionName(function.getFunctionName());
+				childFunction.setFunctionLevel(function.getFunctionLevel());
+				childFunction.setFunctionUrl(function.getFunctionUrl());
+				childFunction.setParentFunctionId(function.getParentFunctionId());
+				list1.add(childFunction);
+				String functionId=function.getFunctionId();
+				//子节点再递归查下级节点
+				recursive(functionId,childFunction);
+			}
+		}
+		//将父节点所属子节点集和赋值到父节点元素内
+		functionJson.setChildFunction(list1);
+	}
+	
+	
+}

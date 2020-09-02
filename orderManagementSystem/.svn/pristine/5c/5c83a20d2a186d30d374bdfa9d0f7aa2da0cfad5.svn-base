@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper.CreateOrderMapper">
+
+ 	<select id="packageList" resultType="com.want.po.PackageInfo">
+        SELECT PACKAGE_ID,PACKAGE_NAME,SALE_PRICE,DISCOUNT_PRICE
+        ,UNIT_NAME,PROD_AMOUNT FROM PACKAGE where IS_DELETE=0 
+ 	</select>
+ 	
+ 	<select id="customerReceverAddressesList" resultType="com.want.dto.CustomerReceverAddresses" parameterType="String">
+        select CUSTOMER_RECEVER_ADDRESSES.SAP_RECEIVER_CODE,
+		CUSTOMER_RECEVER_ADDRESSES.SAP_RECEIVER_NAME,
+		CUSTOMER_RECEVER_ADDRESSES.ADDRESS 
+		from CUSTOMER,CUSTOMER_RECEVER_ADDRESSES
+		where CUSTOMER.CUSTOMER_CODE=CUSTOMER_RECEVER_ADDRESSES.CUSTOMER_CODE  
+		AND CUSTOMER.CUSTOMER_CODE=#{customerCode}
+ 	</select>
+ 	
+ 	<select id="customerList" resultType="com.want.dto.Customer" parameterType="String">
+        SELECT
+		    c.CUSTOMER_CODE,
+		    c.ABBREVIATION,
+		    c.SALE_COMPANY,
+		    c.DISTRIBUTION_CHANNEL,
+		    c.PRODUCT_GROUP,
+		    (
+		        SELECT DISTINCT
+		            ORG_NAME
+		        FROM
+		            ORGANIZATION
+		        WHERE
+		            ORG_LEVEL =2 START WITH ORG_ID = c.PARENT_CODE CONNECT BY prior PARENT_ORG_ID=ORG_ID )
+		    AS ORG_NAME,
+		    c.FACTORY,
+		    c.FACTORY_NAME,
+		    c.PARENT_CODE,
+		    b.ORG_NAME as BRANCH_NAME,
+		    c.SAP_BUYER_CODE,
+		    c.SAP_BUYER_NAME,
+		    c.CONTACT,
+		    c.CONTACT_TEL
+		FROM
+		    CUSTOMER c,
+		    (
+		        SELECT
+		            ORG_ID,
+		            ORG_NAME
+		        FROM
+		            ORGANIZATION
+		        WHERE
+		            ORG_NAME LIKE '%营业所' START WITH ORG_ID=
+		            (
+		                SELECT
+		                    a.ORG_ID
+		                FROM
+		                    ORGANIZATION a,
+		                    EMP_ORG_REL b
+		                WHERE
+		                    a.ORG_ID=b.ORG_ID
+		                AND b.EMP_ID=#{userId} ) CONNECT BY prior ORG_ID=PARENT_ORG_ID ) b
+		WHERE
+		    c.PARENT_CODE=b.ORG_ID
+		    <if test="customerId != null and customerId != '' "> 
+				 AND c.CUSTOMER_CODE =#{customerId,jdbcType=VARCHAR}    
+			</if>	
+			<if test="customerName != null and customerName != '' "> 
+				 AND c.ABBREVIATION like '%'||#{customerName,jdbcType=VARCHAR}||'%' 
+			</if>	
+ 	</select>
+ 	
+</mapper> 

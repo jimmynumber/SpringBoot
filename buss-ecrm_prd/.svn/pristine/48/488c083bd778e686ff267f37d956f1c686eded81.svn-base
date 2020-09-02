@@ -1,0 +1,40 @@
+server.servlet.context-path=/buss-ecrm
+logging.level.com.want=debug
+mybatis.mapper-locations=classpath:/common/mybatis/*/*.xml
+mybatis.configuration.map-underscore-to-camel-case=true
+mybatis.configuration.default-fetch-size=100
+mybatis.configuration.default-statement-timeout=30
+
+
+webservices.interceptor.username=admin
+webservices.interceptor.password=P@ssw0rd
+webservices.interceptor.accessIp=10.0.13.163,10.0.13.247,10.0.13.102
+
+#spring.profiles.active=dev
+#  æµè¯
+spring.datasource.jndi-name = java:comp/env/jdbc/oracle225ORCLPDB/salesgroup2_rc
+# UAT
+# spring.datasource.jndi-name = java:comp/env/jdbc/oracle162ORCLPDB/salesgroup2_rc
+#  æ­£å¼
+#spring.datasource.jndi-name = java:comp/env/jdbc/oracle188bpmreport/SALESGROUP2_ODS
+
+
+# 端口
+http.port=8080
+#server.port=443
+# 指定签名文件，对应生成的密钥库文件
+#server.ssl.key-store=classpath:MyKeyStore.p12
+# 指定签名密码，设置的密钥库指令  密钥生成时输入的密钥库口令
+#server.ssl.key-store-password=P@ssw0rd
+# 指定密钥仓库类型，PKCS12  密钥类型，与密钥生成命令一致
+#server.ssl.keyStoreType=PKCS12
+# 指定别名，密钥别名，与密钥生成命令一致
+#server.ssl.keyAlias=tomcat
+
+server.ssl.enabled=true
+server.ssl.keyAlias=tomcat
+server.ssl.keyPassword=P@ssw0rd
+server.ssl.keyStorePassword=P@ssw0rd
+server.ssl.keyStore=classpath:MyKeyStore.p12
+server.ssl.keyStoreType=PKCS12
+

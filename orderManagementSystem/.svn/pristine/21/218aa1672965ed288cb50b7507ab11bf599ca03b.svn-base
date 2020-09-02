@@ -1,0 +1,19 @@
+package com.want.mapper;
+
+import java.util.List;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import com.want.dto.Customer;
+import com.want.dto.CustomerReceverAddresses;
+import com.want.po.PackageInfo;
+
+@Mapper
+public interface CreateOrderMapper { 
+	
+	public List<PackageInfo> packageList(@Param("saleCompany")String saleCompany,@Param("distributionChannel")String distributionChannel,@Param("productGroup")String productGroup);
+	
+	public List<CustomerReceverAddresses> customerReceverAddressesList(@Param("customerCode")String customerCode);
+	
+	public List<Customer> customerList(@Param("userId")String userId,@Param("customerId")String customerId,@Param("customerName")String customerName);
+	
+} 

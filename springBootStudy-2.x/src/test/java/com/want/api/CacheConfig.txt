@@ -1,0 +1,133 @@
+append pom.xml
+ 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+append application.properties
+spring.datasource.url=jdbc:mysql://localhost:3306/test
+spring.datasource.username=root
+spring.datasource.password=12345678
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=create-drop
+
+package com.didispace.chapter51;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+
+@EnableCaching
+@SpringBootApplication
+public class Chapter51Application {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Chapter51Application.class, args);
+	}
+
+}
+
+package com.didispace.chapter51;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
+@Entity
+@Data
+@NoArgsConstructor
+public class User {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String name;
+    private Integer age;
+
+    public User(String name, Integer age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+
+package com.didispace.chapter51;
+
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+@CacheConfig(cacheNames = "users")
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Cacheable
+    User findByName(String name);
+
+    User findByNameAndAge(String name, Integer age);
+
+    @Query("from User u where u.name=:name")
+    User findUser(@Param("name") String name);
+
+}
+
+package com.didispace.chapter51;
+
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
+import org.springframework.test.context.junit4.SpringRunner;
+
+@Slf4j
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class Chapter51ApplicationTests {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @Test
+    public void test() throws Exception {
+        // 创建1条记录
+        userRepository.save(new User("AAA", 10));
+
+        User u1 = userRepository.findByName("AAA");
+        System.out.println("第一次查询：" + u1.getAge());
+
+        User u2 = userRepository.findByName("AAA");
+        System.out.println("第二次查询：" + u2.getAge());
+    }
+
+}

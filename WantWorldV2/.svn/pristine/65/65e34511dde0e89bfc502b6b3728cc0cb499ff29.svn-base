@@ -1,0 +1,88 @@
+package com.want.wantworld.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.want.wantworld.service.ICryptoService;
+import com.want.wantworld.service.ILoginService;
+import com.want.wantworld.vo.LoginVo;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+ 
+@Api(tags = "登录")
+@CrossOrigin
+@RestController 
+public class LoginController {
+
+	private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+	
+	@Autowired
+    private ILoginService service;
+	
+	@Autowired
+	private ICryptoService cryptoService;
+	@ApiOperation(value = "登录", notes = "")
+	@PostMapping("/login") 
+	public Map<String, String> login(@RequestBody LoginVo loginVo) { 
+		logger.info("LoginVo,LoginVo:{}",loginVo);
+		Map<String, String> map = new HashMap<String, String>();
+//		boolean bool = service.validateLogin(userId);
+//		if (!bool) {
+//			map.put("code", "402");
+//			map.put("message", "您没有权限登录！");
+//			map.put("userName", "");
+//			return map;
+//		}
+		String userId=loginVo.getUserId();
+		String password=loginVo.getPassword();	
+		logger.info("加密 userId:{},password:{}",userId,password);
+		if (userId != null && password != null) {
+			userId = cryptoService.getDecryptText(userId);
+			password = cryptoService.getDecryptText(password);
+			logger.info("解密 userId:{},password:{}",userId,password);
+			loginVo.setUserId(userId);
+			loginVo.setPassword(password);;
+			map = service.login(userId, password);
+			String code = map.get("code");
+			//账号密码验证通过 生成token，否则直接返回
+			if ("200".equals(code)) {
+				map =service.loginToken(loginVo, map); 
+				map.put("loginId", cryptoService.getEncryptText(userId));
+			} 
+			return map; 
+			
+		} else {
+			map.put("code", "402");
+			map.put("message", "用户名和密码不能为空！");
+			return map;
+		}
+			
+	}
+	@ApiOperation(value = "登出", notes = "")
+	@PostMapping("/logoutToken")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "userId", value = "工号", required = true, paramType = "query", defaultValue = "lAcJcUcuOJ4f3S5siOVicVu7mFLJCCRlAiuvLpp26mvWJDvzs6kBDT3j5dVmcBHTo8rCsQwsKnVC09zAugfPiIoCETcO+KLbj9EUE6OE9YmeXP7PEDm/Zb4LiLv6WGySokfWGmxvr9KFRPOY8GseDHQ+pFQx3FlGSTTuVW8B2eY=")})
+	public Map<String, String> logoutToken(@RequestBody LoginVo loginVo) {
+		Map<String, String> map = new HashMap<String, String>();
+		String userId = loginVo.getUserId();
+		if(!StringUtils.isEmpty(userId)) {
+			return service.logoutToken(userId); 
+		} else {
+			map.put("code", "402");
+			map.put("message", "工号不能为空！");
+			return map;
+		}
+	} 	
+}

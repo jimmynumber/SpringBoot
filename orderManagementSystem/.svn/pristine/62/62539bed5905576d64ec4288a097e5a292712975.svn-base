@@ -1,0 +1,36 @@
+package com.want.service.impl;
+
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.want.dto.Customer;
+import com.want.dto.CustomerReceverAddresses;
+import com.want.mapper.CreateOrderMapper;
+import com.want.po.PackageInfo;
+import com.want.service.ICreateOrderService;
+
+@Service 
+public class CreateOrderServiceImpl implements ICreateOrderService{
+	private static final Logger LOGGER = LoggerFactory.getLogger(CreateOrderServiceImpl.class);
+	@Autowired
+    private CreateOrderMapper createOrderMapper;
+	
+	public List<PackageInfo> packageList(){
+		return createOrderMapper.packageList();
+	}
+	
+	public List<Customer> customerList(String userId,String customerId,String customerName){
+		List<Customer> customerList = createOrderMapper.customerList(userId, customerId, customerName);
+		if(customerList.size()>0&&customerList!=null) {
+			for(int i=1;i<customerList.size();i++) {
+				Customer customer = customerList.get(i);
+				List<CustomerReceverAddresses> customerReceverAddresses = createOrderMapper.customerReceverAddressesList(customer.getCustomerCode());
+				customer.setCustomerReceverAddresses(customerReceverAddresses);
+			}
+		}
+		return customerList;
+	}
+	
+}

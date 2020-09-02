@@ -1,0 +1,9 @@
+package com.want.wantworld.service;
+
+import com.want.wantworld.entity.BaseData;
+import com.want.wantworld.vo.BaseVersion;
+import com.want.wantworld.vo.WResult;
+
+public interface BaseDataService {
+	WResult getBaseData(String userId,String version,String deviceType);
+}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper188.ProdStructMapper">
+
+  	<!-- 新增或修改产品结构数据 -->
+  	<insert id="mergeProdStruct" parameterType="com.want.vo.ProdStruct" >
+  	     merge into SALESGROUP2_ODS.prod_structure a 
+  	     using (
+  	     	select #{id,jdbcType=VARCHAR} as id ,#{productStructureCode,jdbcType=VARCHAR} as PROD_STRUCTURE_ID,#{productStructureName,jdbcType=VARCHAR} as PROD_STRUCTURE_NAME,#{createTime,jdbcType=VARCHAR} as create_Time from dual
+  	     )b  on ( a.id = b.id )
+  	     when matched then 
+  	     update  
+  	        <set>
+  	           <if test="productStructureCode != null " >
+  	                a.PROD_STRUCTURE_ID = b.PROD_STRUCTURE_ID,
+  	           </if>
+  	           <if test="productStructureName != null " >
+  	                a.PROD_STRUCTURE_NAME = b.PROD_STRUCTURE_NAME,
+  	           </if>
+  	           <if test="createTime != null " >
+  	                a.CREATE_TIME = b.create_Time,
+  	           </if>
+  	                a.UPDATE_USER ='update',
+  	                a.UPDATE_DATE= SYSDATE
+  	        </set>
+  	      when not matched then 
+  	      insert  
+  	 		<trim prefix=" ( " suffix=" ) " suffixOverrides=" , ">
+    		         a.ID,
+	    		 <if test="productStructureCode != null " >      
+					a.PROD_STRUCTURE_ID,
+				 </if>
+	    		 <if test="productStructureName != null " >      
+					a.PROD_STRUCTURE_NAME,
+				 </if>
+				  <if test="createTime != null " >
+  	                 a.CREATE_TIME,
+  	              </if>
+				a.CREATE_USER,
+				a.CREATE_DATE,
+				a.UPDATE_USER,
+				a.UPDATE_DATE,
+    		 </trim>
+    		 <trim prefix=" values ( " suffix=" ) " suffixOverrides=" , ">
+    		       #{id,jdbcType=VARCHAR} ,
+				 <if test="productStructureCode != null " >      
+					#{productStructureCode,jdbcType=VARCHAR},
+				 </if>
+	    		 <if test="productStructureName != null  " >      
+					#{productStructureName,jdbcType=VARCHAR},
+				</if>
+				<if test="createTime != null " >
+  	                 #{createTime,jdbcType=VARCHAR},
+  	             </if>
+				'IEM',
+				SYSDATE,
+				'insert',
+				SYSDATE,				
+			 </trim>	
+  	</insert>
+  	<!-- 删除前一天数据 -->
+  	<delete id="deleteProdStruct">
+  	    delete from SALESGROUP2_ODS.prod_structure where UPDATE_DATE  &lt; trunc(sysdate)
+  	</delete>
+  	
+  	
+  	
+</mapper> 

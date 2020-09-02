@@ -1,0 +1,69 @@
+package com.want.vo;
+
+import java.io.Serializable;
+
+public class Order implements Serializable{
+	private static final long serialVersionUID = -8949611089606958726L;
+	private String orderCode;      // SOCS订单编码
+	private String sapBuyerCode;   // 客户SAP系统编号
+	private String abbreviation;   // 客户名称
+	private String orgId;          // 组织层级
+	private String sTime;          // 订单开始时间
+	private String eTime;          // 订单结束时间
+	private String dataSource;     // 数据来源
+	private String orderStatus;    // 订单状态
+	public String getOrderCode() {
+		return orderCode;
+	}
+	public void setOrderCode(String orderCode) {
+		this.orderCode = orderCode;
+	}
+	public String getSapBuyerCode() {
+		return sapBuyerCode;
+	}
+	public void setSapBuyerCode(String sapBuyerCode) {
+		this.sapBuyerCode = sapBuyerCode;
+	}
+	public String getAbbreviation() {
+		return abbreviation;
+	}
+	public void setAbbreviation(String abbreviation) {
+		this.abbreviation = abbreviation;
+	}
+	public String getOrgId() {
+		return orgId;
+	}
+	public void setOrgId(String orgId) {
+		this.orgId = orgId;
+	}
+	public String getsTime() {
+		return sTime;
+	}
+	public void setsTime(String sTime) {
+		this.sTime = sTime;
+	}
+	public String geteTime() {
+		return eTime;
+	}
+	public void seteTime(String eTime) {
+		this.eTime = eTime;
+	}
+	public String getDataSource() {
+		return dataSource;
+	}
+	public void setDataSource(String dataSource) {
+		this.dataSource = dataSource;
+	}
+	public String getOrderStatus() {
+		return orderStatus;
+	}
+	public void setOrderStatus(String orderStatus) {
+		this.orderStatus = orderStatus;
+	}
+	@Override
+	public String toString() {
+		return "Order [orderCode=" + orderCode + ", sapBuyerCode=" + sapBuyerCode + ", abbreviation=" + abbreviation
+				+ ", orgId=" + orgId + ", sTime=" + sTime + ", eTime=" + eTime + ", dataSource=" + dataSource
+				+ ", orderStatus=" + orderStatus + "]";
+	}
+}

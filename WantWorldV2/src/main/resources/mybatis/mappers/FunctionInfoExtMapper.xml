@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.wantworld.dao.FunctionInfoDao">
+	<!-- 根据员工号查询有权限的菜单 -->
+	<select id="selectMentListByEmpId" parameterType="java.lang.String" resultType="com.want.wantworld.vo.Menu">
+		SELECT
+	    FI.FUNC_ID AS menuId,
+	    FUNC_GROUP_ID AS parentId,
+	    FUNC_NAME AS menuName, 
+	    FUNC_URL AS menuUrl,
+	    FUNC_TYPE AS menuType, 
+	    BACKGROUD_IMG AS menuIcon, 
+	    IN_ORDER AS menuSort 
+	    FROM WANTWORLDV2.FUNCTION_INFO FI
+	    INNER JOIN WANTWORLDV2.USER_GROUP_FUNCTION_REL UGFR on FI.FUNC_ID = UGFR.FUNC_ID and FI.STATUS = 1
+	    INNER JOIN WANTWORLDV2.USER_GROUP UG on UGFR.USER_GROUP_ID = UG.USER_GROUP_ID and UG.STATUS = 1 
+	    INNER JOIN WANTWORLDV2.USER_INFO UI on UG.USER_GROUP_ID = UI.USER_GROUP_ID
+	    WHERE UI.EMP_ID = #{empId,jdbcType=VARCHAR}
+	    ORDER BY FI.IN_ORDER
+	</select>
+</mapper>

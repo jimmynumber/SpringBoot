@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper187.CustomerBusinessInfoMapper">
+
+    <!-- 新增或修改经销商基本信息 -->
+    <insert id="mergeCustomerBusinessInfo" parameterType="com.want.vo.CustomerBusinessInfo" >
+         merge into salesgroup2_rc.CUSTOMER_BUSINESS_INFO a 
+         using (
+            select 
+               #{tenantUserid,jdbcType=VARCHAR} as TENANT_USERID,
+		        #{regionalName,jdbcType=VARCHAR} as REGIONALNAME,
+		        #{salesDepartMentName,jdbcType=VARCHAR} as SALESDEPARTMENTNAME,
+		        #{businessName,jdbcType=VARCHAR} as BUSINESSNAME,
+		        #{businessNameCode,jdbcType=VARCHAR} as BUSINESSNAMECODE,
+		        #{dealerName,jdbcType=VARCHAR} as DEALERNAME,
+		        #{dealerNumber,jdbcType=VARCHAR} as DEALERNUMBER,
+		        #{cooperationStatus,jdbcType=VARCHAR} as COOPERATIONSTATUS,
+		        #{Name,jdbcType=VARCHAR} as NAME,
+		        #{idCard,jdbcType=VARCHAR} as IDCARD,
+		        #{phoneNumber,jdbcType=VARCHAR} as PHONENUMBER,
+		        #{bankCardNumber,jdbcType=VARCHAR} as BANKCARDNUMBER,
+		        #{Address,jdbcType=VARCHAR} as ADDRESS,
+		        #{personnelStatus,jdbcType=VARCHAR} as PERSONNELSTATUS,
+		        #{accountStatus,jdbcType=VARCHAR} as ACCOUNTSTATUS,
+		        #{personCreatTime,jdbcType=VARCHAR} as PERSONCREATTIME,
+		        #{updateTime,jdbcType=VARCHAR} as UPDATETIME,
+		        #{dataType,jdbcType=VARCHAR} as DATATYPE
+            from dual
+         ) b on ( a.TENANT_USERID =b.TENANT_USERID )
+       when matched then 
+       update 
+        <set>
+	        <if test="regionalName != null " >a.REGIONALNAME = b.REGIONALNAME, </if>
+	        <if test="salesDepartMentName != null " >a.SALESDEPARTMENTNAME = b.SALESDEPARTMENTNAME, </if>
+	        <if test="businessName != null " >a.BUSINESSNAME = b.BUSINESSNAME, </if>
+	        <if test="businessNameCode != null " >a.BUSINESSNAMECODE = b.BUSINESSNAMECODE, </if>
+	        <if test="dealerName != null " >a.DEALERNAME = b.DEALERNAME, </if>
+	        <if test="dealerNumber != null " >a.DEALERNUMBER = b.DEALERNUMBER, </if>
+	        <if test="cooperationStatus != null " >a.COOPERATIONSTATUS = b.COOPERATIONSTATUS, </if>
+	        <if test="Name != null " >a.NAME = b.NAME, </if>
+	        <if test="idCard != null " >a.IDCARD = b.IDCARD, </if>
+	        <if test="phoneNumber != null " >a.PHONENUMBER = b.PHONENUMBER, </if>
+	        <if test="bankCardNumber != null " >a.BANKCARDNUMBER = b.BANKCARDNUMBER, </if>
+	        <if test="Address != null " >a.ADDRESS = b.ADDRESS, </if>
+	        <if test="personnelStatus != null " >a.PERSONNELSTATUS = b.PERSONNELSTATUS, </if>
+	        <if test="accountStatus != null " >a.ACCOUNTSTATUS = b.ACCOUNTSTATUS, </if>
+	        <if test="personCreatTime != null " >a.PERSONCREATTIME = b.PERSONCREATTIME, </if>
+	        <if test="updateTime != null " >a.UPDATETIME = b.UPDATETIME, </if>
+	        <if test="dataType != null " >a.DATATYPE = b.DATATYPE, </if>
+	         a.UPDATE_USER ='update',
+	         a.UPDATE_DATE= SYSDATE
+        </set>
+        when not matched then 
+        insert 
+        <trim prefix=" ( " suffix=" ) " suffixOverrides=" , ">
+	        <if test="tenantUserid != null " >a.TENANT_USERID ,</if>
+	        <if test="regionalName != null " >a.REGIONALNAME ,</if>
+	        <if test="salesDepartMentName != null " >a.SALESDEPARTMENTNAME ,</if>
+	        <if test="businessName != null " >a.BUSINESSNAME ,</if>
+	        <if test="businessNameCode != null " >a.BUSINESSNAMECODE ,</if>
+	        <if test="dealerName != null " >a.DEALERNAME ,</if>
+	        <if test="dealerNumber != null " >a.DEALERNUMBER ,</if>
+	        <if test="cooperationStatus != null " >a.COOPERATIONSTATUS ,</if>
+	        <if test="Name != null " >a.NAME ,</if>
+	        <if test="idCard != null " >a.IDCARD ,</if>
+	        <if test="phoneNumber != null " >a.PHONENUMBER ,</if>
+	        <if test="bankCardNumber != null " >a.BANKCARDNUMBER ,</if>
+	        <if test="Address != null " >a.ADDRESS ,</if>
+	        <if test="personnelStatus != null " >a.PERSONNELSTATUS ,</if>
+	        <if test="accountStatus != null " >a.ACCOUNTSTATUS ,</if>
+	        <if test="personCreatTime != null " >a.PERSONCREATTIME ,</if>
+	        <if test="updateTime != null " >a.UPDATETIME ,</if>
+	        <if test="dataType != null " >a.DATATYPE ,</if>
+	        a.CREATE_USER,
+	        a.CREATE_DATE,
+	        a.UPDATE_USER,
+	        a.UPDATE_DATE,
+        </trim>
+        <trim prefix=" values ( " suffix=" ) " suffixOverrides=" , ">
+	        <if test="tenantUserid != null " > #{tenantUserid,jdbcType=VARCHAR},</if>
+	        <if test="regionalName != null " > #{regionalName,jdbcType=VARCHAR},</if>
+	        <if test="salesDepartMentName != null " > #{salesDepartMentName,jdbcType=VARCHAR},</if>
+	        <if test="businessName != null " > #{businessName,jdbcType=VARCHAR},</if>
+	        <if test="businessNameCode != null " > #{businessNameCode,jdbcType=VARCHAR},</if>
+	        <if test="dealerName != null " > #{dealerName,jdbcType=VARCHAR},</if>
+	        <if test="dealerNumber != null " > #{dealerNumber,jdbcType=VARCHAR},</if>
+	        <if test="cooperationStatus != null " > #{cooperationStatus,jdbcType=VARCHAR},</if>
+	        <if test="Name != null " > #{Name,jdbcType=VARCHAR},</if>
+	        <if test="idCard != null " > #{idCard,jdbcType=VARCHAR},</if>
+	        <if test="phoneNumber != null " > #{phoneNumber,jdbcType=VARCHAR},</if>
+	        <if test="bankCardNumber != null " > #{bankCardNumber,jdbcType=VARCHAR},</if>
+	        <if test="Address != null " > #{Address,jdbcType=VARCHAR},</if>
+	        <if test="personnelStatus != null " > #{personnelStatus,jdbcType=VARCHAR},</if>
+	        <if test="accountStatus != null " > #{accountStatus,jdbcType=VARCHAR},</if>
+	        <if test="personCreatTime != null " > #{personCreatTime,jdbcType=VARCHAR},</if>
+	        <if test="updateTime != null " > #{updateTime,jdbcType=VARCHAR},</if>
+	        <if test="dataType != null " > #{dataType,jdbcType=VARCHAR},</if>
+	        'IEM',
+	        SYSDATE,
+	        'insert',
+	        SYSDATE,
+        </trim>
+    </insert>
+
+
+</mapper> 

@@ -1,0 +1,575 @@
+package com.want.service.impl;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.want.dto.OT_RETURN;
+import com.want.mapper.CreateOrderMapper;
+import com.want.mapper.OrderMapper;
+import com.want.po.ERPOrder;
+import com.want.po.ERPOrderDetail;
+import com.want.po.OrderDetail;
+import com.want.po.OrderInfo;
+import com.want.po.PackageInfo;
+import com.want.po.ProductAssign;
+import com.want.po.ProductInfo;
+import com.want.po.PromoteInfo;
+import com.want.po.SthPromote;
+import com.want.po.Type;
+import com.want.service.ICreateOrderService;
+import com.want.service.IOrderWebService;
+import com.want.vo.IT_EKKO;
+import com.want.vo.IT_EKPO;
+
+@Service
+@Transactional
+public class OrderWebServiceImpl implements IOrderWebService{
+	
+	@Autowired
+    private OrderMapper orderMapper;
+	
+	@Autowired
+    private CreateOrderMapper createOrderMapper;
+	
+	@Autowired
+    private ICreateOrderService createOrderService;
+	
+	public SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+	public SimpleDateFormat sdfs = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+	public String assign = "";
+	public String sid="";
+	 
+	@SuppressWarnings("finally")
+	public OT_RETURN syncOrder(IT_EKKO order,List<IT_EKPO> orderDetails) { 
+			System.out.println("order:"+order);
+			System.out.println("orderDetails:"+orderDetails);
+			
+			OT_RETURN otReturn=new OT_RETURN();
+			Date date=new Date();
+			List<OrderDetail> orderDetailList =new ArrayList<>();
+			List<ERPOrderDetail> erpOrderDetailList =new ArrayList<>();
+			List<ERPOrder> erpOrderList =new ArrayList<>();
+			Map<String,String> erpId = new HashMap<>();
+			int count=1;
+			
+		try {
+			String dates = sdfs.format(date);
+			otReturn.setORDER_CODE(order.getORDER_CODE());
+			order.setCREATE_DATE(sdf.format(date));	
+			long flag=orderMapper.queryOrderByCode(order.getORDER_CODE());
+			if(flag>0) {
+				otReturn.setTYPE("E");
+				otReturn.setMESSAGE("重复订单");
+			}else {
+				//OrderInfo获取传入的ORDER数据
+				OrderInfo orderInfo =new OrderInfo();
+				this.createOrderInfo(orderInfo, order);
+				List<SthPromote> sthPromote = new ArrayList<SthPromote>();
+				
+				//循环orderDetails，查询是否大礼包
+				for(int i=0;i<orderDetails.size();i++) {
+					PromoteInfo promote = null;
+					//OrderDetails获取传入的orderDetail数据
+					IT_EKPO orderDetailvo=orderDetails.get(i);
+					OrderDetail orderDetail=new OrderDetail();
+					this.createOrderDetail(orderDetail, orderDetailvo);
+					
+					//根据ProductCode查询是否大礼包
+					List<PackageInfo> packages = orderMapper.prodList(orderDetailvo.getPRODUCT_CODE());
+					
+					//商品为大礼包
+					if(packages!=null&&packages.size()>0) {
+						
+						//设置orderDetail的产品类别为1 大礼包产品
+						orderDetail.setProductType(Type.productType_giftBag);
+						
+						for(int k=0;k<orderDetail.getCount();k++) {
+							//ERPOrder获取点单数据，新建ERPOrder
+							sid=dates+String.format("%03d", count);
+							count++;
+							
+							ERPOrder erpOrder=new ERPOrder();
+							//创建ERPOrder
+							this.createErpOrder(erpOrder, orderInfo, packages.get(0));
+							erpOrderList.add(erpOrder);
+							
+							//循环大礼包商品数据
+							for(int j=0;j<packages.size();j++) {
+								PackageInfo packageInfo=packages.get(j);
+								ERPOrderDetail erpOrderDetail=new ERPOrderDetail();
+								//创建ERPOrderDetial
+								this.createErpOrderDetail(erpOrderDetail, orderInfo, packageInfo);
+								//通过ERPOrderDetail添加到erpOrderDetailList中
+								erpOrderDetailList.add(erpOrderDetail);
+							}
+						}
+					}else {
+						//订单类别  默认为1 普通产品订单 
+						String orderType=Type.orderType_general;
+						Double price =(double) 0;
+						
+						//根据客户和产品查询销售组织、分销渠道、产品组
+						List<ProductAssign> productAssigns = orderMapper.getProductAssignByCode(orderDetail.getProductCode()
+								,order.getSAP_BUYER_CODE());
+						
+						//根据判断productAssigns不为空且只有一条为正常订单
+						if(productAssigns!=null&&productAssigns.size()==1) {
+							ProductAssign productAssign = productAssigns.get(0);
+							
+							//根据条件查询产品是否符合水头会的促销政策
+							sthPromote = createOrderMapper.sthPromote(orderDetail.getProductCode(), order.getORDER_TIME());
+							if(sthPromote!=null && sthPromote.size()>0) {
+								//根据sthPromote不为空判断为水头会产品，设置订单类别为4 水头会订单
+								orderType=Type.orderType_headWill;
+								assign = sthPromote.get(0).getOrderComSid();
+							}else {
+								//根据条件查询产品是否有且符合的促销政策
+								promote = createOrderService.validationPromote(order.getSAP_BUYER_CODE(),orderDetail.getProductCode(),
+										productAssign.getDistributionChannel(),productAssign.getProductGroup());
+								//判断促销产品数量是否符合促销基数
+								if(promote!=null) {
+									if(orderDetail.getCount()<promote.getPromoteCount()) {
+										promote = null;
+									}else {
+										//根据promote不为空判断为同品搭赠产品，设置订单类别为3 同品搭赠订单
+										orderType=Type.orderType_salesPromotion;
+										//同品搭赠订单，用促销政策ID生成ERPOrder订单唯一码
+										assign = promote.getPromoteId();
+									}
+								}
+							}
+							
+							//根据promote为空判断为普通产品订单，assign根据 销售组织、分销渠道、产品组 生成ERPOrder订单唯一码
+							if(promote==null && sthPromote.size()==0) {
+								assign = productAssign.getSaleCompany()+productAssign.getDistributionChannel()+productAssign.getProductGroup();
+								
+								//一般产品根据ProductPrice逻辑获取价格
+								price = createOrderService.getProductPrice(productAssign.getSaleCompany(),productAssign.getDistributionChannel()
+										,productAssign.getProductGroup(),productAssign.getProductCode(),order.getSAP_BUYER_CODE());
+								
+								//根据条件查询出价格为空，该产品没有维护价格，就不能创建订单直接返回失败
+								if(price==null) {
+									otReturn.setTYPE("E");
+									otReturn.setMESSAGE("同步失败:产品"+productAssign.getProductCode()+"没有维护价格");
+									return otReturn;
+								}
+							}
+						//productAssigns为空或有多条为异常订单，指定ERPOrder唯一码
+						}else if(productAssigns!=null&&productAssigns.size()>1) {
+							assign = "assign1";
+						}else {
+							assign = "assign2";
+						}
+						
+						//判断当前assign是否存在map erpId中，没有则创建新的ERPOrder订单并将assign保存进map erpId中
+						if(!erpId.containsKey(assign)) {
+							sid=dates+String.format("%03d", count);
+							erpId.put(assign, sid);
+							ERPOrder erpOrder=createERPOrder(order,productAssigns,orderType);
+							erpOrderList.add(erpOrder);
+							count++;
+						}
+						
+						//通过assign在map erpId中获取sid对应ERPOrderDetail的ErpOrderSid
+						sid = erpId.get(assign);
+						
+						//createERPOrderDetail整理ERPOrderDetail数据
+						ERPOrderDetail erpOrderDetail=createERPOrderDetail(order,orderDetail,promote,price,sthPromote);
+						
+						//通过ERPOrderDetail添加到erpOrderDetailList中
+						erpOrderDetailList.add(erpOrderDetail);
+						
+						//根据promote不为空判断为同品搭赠产品，添加免费行
+						if(promote!=null) {
+							Double giveCount = Math.floor(orderDetail.getCount()/promote.getPromoteCount());
+							ERPOrderDetail erpOrderDetail1 = takeGift(order,promote,giveCount);
+							erpOrderDetailList.add(erpOrderDetail1);
+						}
+						//设置orderDetail的产品类别为0 单个产品
+						orderDetail.setProductType(Type.productType_general);
+					}
+					
+					//orderDetail添加进orderDetailList统一保存
+					orderDetailList.add(orderDetail);
+				}
+				
+				//计算erpOrder每单的总价
+				if(erpOrderList!=null && erpOrderList.size()>0) {
+					for(ERPOrder erpOrder:erpOrderList) {
+						if(!erpOrder.getOrderType().equals("2")) {
+							Double sumAmount=(double) 0;
+							for(int j=0;j<erpOrderDetailList.size();j++) {
+								if(erpOrderDetailList.get(j).getErpOrderSid().equals(erpOrder.getSid())) {
+									sumAmount+=erpOrderDetailList.get(j).getSumAmount();
+								}
+							}
+							erpOrder.setSumAmount(sumAmount);
+						}
+						if(erpOrder.getOrderType().equals("4")) {
+							//计算水头会订单赠品数量
+							List<ERPOrderDetail> erpOrderDetails = headWill(order,erpOrderDetailList,erpOrder);
+							erpOrderDetailList.addAll(erpOrderDetails);
+						}
+					}
+				}
+				
+				orderMapper.insertOrderInfo(orderInfo);
+				orderMapper.insertOrderDetail(orderDetailList);
+				
+				int detailCount = (int) Math.floor(erpOrderList.size()/1000)+1;
+				for(int i = 0;i < detailCount;i++) {
+					int begin=i*1000;
+					int end=i*1000+1000;
+					List<ERPOrder> erpOrderLists = new ArrayList<ERPOrder>();
+					for(int j = begin;j < end && j < erpOrderList.size();j++) {
+						erpOrderLists.add(erpOrderList.get(j));
+					}
+					if(erpOrderLists != null && erpOrderLists.size() > 0) {
+						orderMapper.insertERPOrder(erpOrderLists);
+					}
+				}
+				
+				detailCount = (int) Math.floor(erpOrderDetailList.size()/1000)+1;
+				for(int i = 0;i < detailCount;i++) {
+					int begin=i*1000;
+					int end=i*1000+1000;
+					List<ERPOrderDetail> erpOrderDetailLists = new ArrayList<ERPOrderDetail>();
+					for(int j = begin;j < end && j < erpOrderDetailList.size();j++) {
+						erpOrderDetailLists.add(erpOrderDetailList.get(j));
+					}
+					if(erpOrderDetailLists != null && erpOrderDetailLists.size() > 0) {
+						orderMapper.insertERPOrderDetail(erpOrderDetailLists);
+					}
+				}
+				
+				otReturn.setTYPE("S");
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			otReturn.setTYPE("E");
+			otReturn.setMESSAGE("同步失败");
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		}finally {
+			return otReturn;
+		}
+	}
+	
+	public ERPOrderDetail takeGift(IT_EKKO order,PromoteInfo promote,Double giveCount) throws ParseException {
+		ERPOrderDetail erpOrderDetail = new ERPOrderDetail();
+		List<ProductInfo> product = orderMapper.queryUnitByProductCode(promote.getGiveProdId());
+		if(product!=null&&product.size()>0) {
+			erpOrderDetail.setUnitName(product.get(0).getUnitName());
+			erpOrderDetail.setProductName(product.get(0).getProductName());
+			erpOrderDetail.setUnit(product.get(0).getUnit());
+		}else {
+			erpOrderDetail.setUnitName("");
+			erpOrderDetail.setProductName("");
+			erpOrderDetail.setUnit("");
+		}
+		erpOrderDetail.setErpOrderSid(sid);
+		erpOrderDetail.setCount(giveCount);
+		erpOrderDetail.setProductId(promote.getGiveProdId());
+		erpOrderDetail.setSalePrice(promote.getSalePrice());
+		erpOrderDetail.setDiscountPrice((double) 0);
+		erpOrderDetail.setRebateDiscountPrice((double) 0);
+		erpOrderDetail.setSumAmount((double) 0);
+		erpOrderDetail.setPromoteId(promote.getPromoteId());
+		erpOrderDetail.setPromotePolicyDesc(promote.getPromotePolicyDesc());
+		erpOrderDetail.setCreateUser(order.getCREATE_USER());
+		erpOrderDetail.setCreateDate(sdf.parse(order.getCREATE_DATE()));
+		erpOrderDetail.setOrderLineType("ZTNN");
+		erpOrderDetail.setAddWay("1");
+		return erpOrderDetail; 
+	}
+	
+	public List<ERPOrderDetail> headWill(IT_EKKO order,List<ERPOrderDetail>  erpOrderDetailList,ERPOrder erpOrder) throws ParseException {
+		List<ERPOrderDetail> ERPOrderDetailList = new ArrayList<ERPOrderDetail>();
+		//当前订单品项数量
+		double sthSumCount=0;
+		String productId="";
+		SthPromote promote = null;
+		//促销政策时间内订单品项ID及对应数量（包括当前订单）
+		Map<String,Double> prod = new HashMap<>();
+		Map<String,Double> historicalProd = new HashMap<>();
+		Map<String,Double> historicalGiveProd = new HashMap<>();
+		for(ERPOrderDetail erpOrderDetail: erpOrderDetailList) {
+			if(erpOrderDetail.getOrderLineType().equals("ZTFN") && erpOrderDetail.getErpOrderSid().equals(erpOrder.getSid())) {
+				sthSumCount = sthSumCount + erpOrderDetail.getCount();
+				prod.put(erpOrderDetail.getProductId(), erpOrderDetail.getCount());
+				productId = erpOrderDetail.getProductId();
+			}
+		}
+		List<SthPromote> sthPromote = createOrderMapper.sthPromote(productId, order.getORDER_TIME());
+		String kanClassType = sthPromote.get(0).getKanClassType();
+		List<Map<String, String>> maps = createOrderMapper.historicalOrder(order.getSAP_BUYER_CODE(), sthPromote.get(0).getBeginDate(), sthPromote.get(0).getEndDate(),sthPromote.get(0).getOrderComSid());
+		//历史订单品项数量
+		double prodCount = 0;
+		String orderLineType = "";
+		for (Map<String, String> map : maps) {
+			if(map.get("PRODUCT_ID") != null) {
+				productId = map.get("PRODUCT_ID");
+				orderLineType = map.get("ORDER_LINE_TYPE");
+				if(orderLineType.equals("ZTFN")){
+					if(prod.containsKey(productId)) {
+						prod.put(productId, prod.get(productId) + Double.valueOf(map.get("COUNT")));
+					}else {
+						prod.put(productId,Double.valueOf(map.get("COUNT")));
+					}
+					historicalProd.put(productId, Double.valueOf(map.get("COUNT")));
+					prodCount = prodCount + Double.valueOf(map.get("COUNT"));
+				}else{
+					historicalGiveProd.put(productId, Double.valueOf(map.get("COUNT")));
+				}
+			}
+		}
+		
+		sthSumCount = sthSumCount + prodCount;
+		double skuBoxCount=0;
+		double giveCount=0;
+		String kanClassSid = "";
+		double historicalCount = 0;
+		
+		for(SthPromote sthpromote:sthPromote) {
+			if(sthpromote.getTotalBoxCount() <= sthSumCount) {
+				skuBoxCount = sthpromote.getSkuBoxCount();
+				giveCount = sthpromote.getGiveCount();
+				kanClassSid = sthpromote.getKanClassSid();
+				promote = sthpromote;
+			}
+		}
+		//总计订单品项数量是否大于政策首单最小数量
+		if(sthSumCount >= skuBoxCount && promote != null) {
+			if(kanClassType.equals("1")) {
+				for(Map.Entry<String, Double> entry : prod.entrySet()){
+					if(entry.getValue() >= skuBoxCount){
+						historicalCount = 0;
+					    productId = entry.getKey();
+					    if(historicalGiveProd.get(productId) != null && historicalGiveProd.get(productId) > 0) {
+					    	historicalCount = historicalGiveProd.get(productId);
+					    }
+					    double giveProdCount = Math.floor(entry.getValue()/skuBoxCount*giveCount)-historicalCount;
+					    if(giveProdCount != 0) {
+							ERPOrderDetail erpOrderDetail = new ERPOrderDetail();
+							erpOrderDetail = headWillGift(order,promote,giveProdCount,erpOrder.getSid(),productId);
+							ERPOrderDetailList.add(erpOrderDetail);
+					    }
+					}
+				}
+			}else {
+				List<Map<String, String>> kanClassDetail = createOrderMapper.kanClassDetail(kanClassSid);
+				productId = kanClassDetail.get(0).get("GIVE_PROD_ID");
+				 if(historicalGiveProd.get(productId) != null && historicalGiveProd.get(productId) > 0) {
+			    	historicalCount = historicalGiveProd.get(productId);
+			    }
+				double giveProdCount = Math.floor((sthSumCount/kanClassDetail.size())/skuBoxCount*giveCount)-historicalCount;
+				if(giveProdCount != 0) {
+					for(Map<String, String> map:kanClassDetail) {
+						productId = map.get("GIVE_PROD_ID");
+						String salePrice = String.valueOf(map.get("SALE_PRICE"));
+						promote.setSalePrice(Double.valueOf(salePrice));
+						ERPOrderDetail erpOrderDetail = new ERPOrderDetail();
+						erpOrderDetail = headWillGift(order,promote,giveProdCount,erpOrder.getSid(),productId);
+						ERPOrderDetailList.add(erpOrderDetail);
+					}
+				}
+			}
+		}
+		return ERPOrderDetailList; 
+	}
+	
+	public ERPOrderDetail headWillGift(IT_EKKO order,SthPromote promote,Double giveCount,String sid,String productId) throws ParseException {
+		ERPOrderDetail erpOrderDetail = new ERPOrderDetail();
+		List<ProductInfo> product = orderMapper.queryUnitByProductCode(productId);
+		if(product!=null&&product.size()>0) {
+			erpOrderDetail.setUnitName(product.get(0).getUnitName());
+			erpOrderDetail.setProductName(product.get(0).getProductName());
+			erpOrderDetail.setUnit(product.get(0).getUnit());
+		}else {
+			erpOrderDetail.setUnitName("");
+			erpOrderDetail.setProductName("");
+			erpOrderDetail.setUnit("");
+		}
+		erpOrderDetail.setErpOrderSid(sid);
+		erpOrderDetail.setCount(giveCount);
+		erpOrderDetail.setProductId(productId);
+		erpOrderDetail.setSalePrice(promote.getSalePrice());
+		erpOrderDetail.setDiscountPrice((double) 0);
+		erpOrderDetail.setRebateDiscountPrice((double) 0);
+		erpOrderDetail.setSumAmount((double) 0);
+		erpOrderDetail.setPromoteId(promote.getOrderComSid());
+		erpOrderDetail.setPromotePolicyDesc(promote.getPromotePolicyDesc());
+		erpOrderDetail.setCreateUser(order.getCREATE_USER());
+		erpOrderDetail.setCreateDate(sdf.parse(order.getCREATE_DATE()));
+		erpOrderDetail.setOrderLineType("ZTNN");
+		erpOrderDetail.setAddWay("1");
+		return erpOrderDetail; 
+	}
+	
+	public ERPOrder createERPOrder(IT_EKKO order,List<ProductAssign> productAssigns,String orderType) throws ParseException { 
+		ERPOrder erpOrder1=new ERPOrder();
+		erpOrder1.setSid(sid);
+		erpOrder1.setErpOrderCode("");
+		erpOrder1.setOrderCode(order.getORDER_CODE());
+		erpOrder1.setPackageId("");
+		erpOrder1.setCreateUser(order.getCREATE_USER());
+		erpOrder1.setCreateDate(sdf.parse(order.getCREATE_DATE()));
+		erpOrder1.setOrderStatus("");
+		erpOrder1.setDesciption("");
+		erpOrder1.setUpdateUser(order.getCREATE_USER());
+		erpOrder1.setUpdateDate(sdf.parse(order.getCREATE_DATE()));
+		erpOrder1.setMemo("");
+		erpOrder1.setSumAmount((double) 0);
+		erpOrder1.setOrderType(orderType);
+		//erpOrder保存的是每个产品对应的销售组织、分销渠道、产品组
+		if(productAssigns!=null&&productAssigns.size()==1) {
+			erpOrder1.setSaleCompany(productAssigns.get(0).getSaleCompany());
+			erpOrder1.setDistributionChannel(productAssigns.get(0).getDistributionChannel());
+			erpOrder1.setProductGroup(productAssigns.get(0).getProductGroup());
+		//productAssigns空或有多条为异常订单
+		}else {
+			erpOrder1.setSaleCompany("");
+			erpOrder1.setDistributionChannel("");
+			erpOrder1.setProductGroup("");
+		}
+		return erpOrder1;
+	}
+	
+	public ERPOrderDetail createERPOrderDetail(IT_EKKO order,OrderDetail orderDetail,PromoteInfo promote,
+			Double price,List<SthPromote> sthPromotes) throws ParseException { 
+		ERPOrderDetail erpOrderDetail=new ERPOrderDetail();
+		//根据产品编码查询产品信息
+		List<ProductInfo> product = orderMapper.queryUnitByProductCode(orderDetail.getProductCode());
+		if(product!=null&&product.size()>0) {
+			erpOrderDetail.setUnitName(product.get(0).getUnitName());
+			erpOrderDetail.setProductName(product.get(0).getProductName());
+			erpOrderDetail.setUnit(product.get(0).getUnit());
+		}else {
+			erpOrderDetail.setUnitName("");
+			erpOrderDetail.setProductName("");
+			erpOrderDetail.setUnit(orderDetail.getUnit());
+		}
+		if(sthPromotes!=null && sthPromotes.size()>0) {
+			SthPromote sthPromote = sthPromotes.get(0);
+			erpOrderDetail.setPromoteId(sthPromote.getOrderComSid());
+			erpOrderDetail.setPromotePolicyDesc(sthPromote.getPromotePolicyDesc());
+			erpOrderDetail.setSalePrice(sthPromote.getSalePrice());
+			erpOrderDetail.setDiscountPrice(sthPromote.getDiscountPrice());
+			erpOrderDetail.setRebateDiscountPrice(sthPromote.getDiscountPrice());
+			erpOrderDetail.setSumAmount(sthPromote.getDiscountPrice()*orderDetail.getCount());
+		}else{
+			if(promote!=null) {
+				erpOrderDetail.setPromoteId(promote.getPromoteId());
+				erpOrderDetail.setPromotePolicyDesc(promote.getPromotePolicyDesc());
+				erpOrderDetail.setSalePrice(promote.getSalePrice());
+				erpOrderDetail.setDiscountPrice(promote.getDiscountPrice());
+				erpOrderDetail.setRebateDiscountPrice(promote.getDiscountPrice());
+				erpOrderDetail.setSumAmount(promote.getDiscountPrice()*orderDetail.getCount());
+			}else{
+				erpOrderDetail.setPromoteId("");
+				erpOrderDetail.setPromotePolicyDesc("");
+				erpOrderDetail.setSalePrice(price);
+				erpOrderDetail.setDiscountPrice(price);
+				erpOrderDetail.setRebateDiscountPrice(price);
+				erpOrderDetail.setSumAmount(price*orderDetail.getCount());
+			}
+		}
+		erpOrderDetail.setErpOrderSid(sid);
+		erpOrderDetail.setProductId(orderDetail.getProductCode());
+		erpOrderDetail.setCount(orderDetail.getCount());
+		erpOrderDetail.setCreateUser(order.getCREATE_USER());
+		erpOrderDetail.setCreateDate(sdf.parse(order.getCREATE_DATE()));
+		erpOrderDetail.setOrderLineType("ZTFN");
+		erpOrderDetail.setAddWay("1");
+		return erpOrderDetail;
+	}
+	
+	public OrderInfo createOrderInfo(OrderInfo orderInfo, IT_EKKO order) {
+		try {
+			orderInfo.setOrderCode(order.getORDER_CODE());
+			orderInfo.setSaleCompany("");
+			orderInfo.setDistributionChannel("");
+			orderInfo.setProductGroup("");
+			orderInfo.setSapBuyerCode(order.getSAP_BUYER_CODE());
+			orderInfo.setOrderTime(sdf.parse(order.getORDER_TIME()));
+			orderInfo.setSapReceiverCode(order.getSAP_RECEIVER_CODE());
+			orderInfo.setMemo(order.getMEMO());
+			orderInfo.setCreateUser(order.getCREATE_USER());
+			orderInfo.setCreateDate(sdf.parse(order.getCREATE_DATE()));
+			orderInfo.setUpdateUser(order.getCREATE_USER());
+			orderInfo.setUpdateDate(sdf.parse(order.getCREATE_DATE()));
+			orderInfo.setDataSource(order.getORDER_TYPE());
+			orderInfo.setOrderStatus("W");
+			orderInfo.setCancelReason("");
+			return orderInfo;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+	
+	public OrderDetail createOrderDetail(OrderDetail orderDetail, IT_EKPO orderDetailvo) {
+		orderDetail.setLineNumber(orderDetailvo.getLINE_NUMBER());
+		orderDetail.setOrderCode(orderDetailvo.getORDER_CODE());
+		orderDetail.setProductCode(orderDetailvo.getPRODUCT_CODE());
+		orderDetail.setPrice(Double.parseDouble(orderDetailvo.getPRICE()));
+		orderDetail.setUnit(orderDetailvo.getUNIT());
+		orderDetail.setCount(Double.parseDouble(orderDetailvo.getCOUNT()));
+		orderDetail.setSaleType(orderDetailvo.getSALE_TYPE());
+		orderDetail.setSumAmount(Double.parseDouble(orderDetailvo.getSUM_AMOUNT()));
+		orderDetail.setItemMemo(orderDetailvo.getITEM_MEMO());
+		return orderDetail;
+	}
+	
+	public ERPOrder createErpOrder(ERPOrder erpOrder, OrderInfo order, PackageInfo packageInfo) {
+		erpOrder.setSid(sid);
+		erpOrder.setErpOrderCode("");
+		erpOrder.setOrderCode(order.getOrderCode());
+		erpOrder.setPackageId(packageInfo.getPackageId());
+		erpOrder.setCreateUser(order.getCreateUser());
+		erpOrder.setCreateDate(order.getCreateDate());
+		erpOrder.setOrderStatus("");
+		erpOrder.setDesciption("");
+		erpOrder.setUpdateUser(order.getUpdateUser());
+		erpOrder.setUpdateDate(order.getUpdateDate());
+		erpOrder.setMemo(packageInfo.getPackageName());
+		erpOrder.setSaleCompany(packageInfo.getSaleCompany());
+		erpOrder.setDistributionChannel(packageInfo.getDistributionChannel());
+		erpOrder.setProductGroup(packageInfo.getProductGroup());
+		erpOrder.setSumAmount(packageInfo.getSumAmount());
+		erpOrder.setOrderType(Type.orderType_giftBag);
+		return erpOrder;
+	}
+	
+	public ERPOrderDetail createErpOrderDetail(ERPOrderDetail erpOrderDetail, OrderInfo order, PackageInfo packageInfo) {
+		erpOrderDetail.setErpOrderSid(sid);
+		erpOrderDetail.setProductId(packageInfo.getProdSku());
+		erpOrderDetail.setProductName(packageInfo.getProdName());
+		erpOrderDetail.setUnit(packageInfo.getUnitCode());
+		erpOrderDetail.setUnitName(packageInfo.getUnitName());
+		erpOrderDetail.setCount(packageInfo.getProdCount());
+		erpOrderDetail.setSalePrice(packageInfo.getSalePrice());
+		erpOrderDetail.setDiscountPrice(packageInfo.getDiscountPrice());
+		erpOrderDetail.setRebateDiscountPrice(packageInfo.getDiscountPrice());
+		erpOrderDetail.setSumAmount(packageInfo.getProdAmount());
+		erpOrderDetail.setCreateUser(order.getCreateUser());
+		erpOrderDetail.setCreateDate(order.getCreateDate());
+		erpOrderDetail.setPromoteId("");
+		erpOrderDetail.setPromotePolicyDesc("");
+		erpOrderDetail.setOrderLineType("ZTFN");
+		erpOrderDetail.setAddWay("1");
+		return erpOrderDetail;
+	}
+
+	
+}

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.wantworld.dao.LoginTokenMapper">
+  <resultMap id="BaseResultMap" type="com.want.wantworld.entity.LoginToken">
+    <id column="SID" jdbcType="NUMERIC" property="sid" />
+    <result column="TOKEN" jdbcType="VARCHAR" property="token" />
+    <result column="DEVICEID" jdbcType="VARCHAR" property="deviceid" />
+    <result column="EMP_ID" jdbcType="VARCHAR" property="empId" />
+    <result column="EMP_NAME" jdbcType="VARCHAR" property="empName" />
+    <result column="OS_TYPE" jdbcType="VARCHAR" property="osType" />
+    <result column="BASE_BAND" jdbcType="VARCHAR" property="baseBand" />
+    <result column="LOGIN_STATE" jdbcType="CHAR" property="loginState" />
+    <result column="DEADLINE" jdbcType="TIMESTAMP" property="deadline" />
+    <result column="CREATE_DATE" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="UPDATE_DATE" jdbcType="TIMESTAMP" property="updateDate" />
+    <result column="IS_BETA" jdbcType="NUMERIC" property="isBeta" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    SID, TOKEN, DEVICEID, EMP_ID, EMP_NAME, OS_TYPE, BASE_BAND, LOGIN_STATE, DEADLINE, 
+    CREATE_DATE, UPDATE_DATE, IS_BETA
+  </sql>
+  <select id="selectByParam" parameterType="java.lang.Short" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from WANTWORLDV2.LOGIN_TOKEN
+    <where>
+      <if test="sid != null">
+        and SID = #{sid,jdbcType=NUMERIC}
+      </if>
+      <if test="token != null">
+        and TOKEN = #{token,jdbcType=VARCHAR}
+      </if>
+      <if test="deviceid != null">
+        and DEVICEID = #{deviceid,jdbcType=VARCHAR}
+      </if>
+      <if test="empId != null">
+        and EMP_ID = #{empId,jdbcType=VARCHAR}
+      </if>
+      <if test="empName != null">
+        and EMP_NAME = #{empName,jdbcType=VARCHAR}
+      </if>
+      <if test="osType != null">
+        and OS_TYPE = #{osType,jdbcType=VARCHAR}
+      </if>
+      <if test="baseBand != null">
+        and BASE_BAND = #{baseBand,jdbcType=VARCHAR}
+      </if>
+      <if test="loginState != null">
+        and LOGIN_STATE = #{loginState,jdbcType=CHAR}
+      </if>
+      <if test="deadline != null">
+        and DEADLINE = #{deadline,jdbcType=TIMESTAMP}
+      </if>
+      <if test="createDate != null">
+        and CREATE_DATE = #{createDate,jdbcType=TIMESTAMP}
+      </if>
+      <if test="updateDate != null">
+        and UPDATE_DATE = #{updateDate,jdbcType=TIMESTAMP}
+      </if>
+    </where>
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Short">
+    delete from WANTWORLDV2.LOGIN_TOKEN
+    where SID = #{sid,jdbcType=NUMERIC}
+  </delete>
+  <insert id="insertSelective" parameterType="com.want.wantworld.entity.LoginToken">
+    insert into WANTWORLDV2.LOGIN_TOKEN
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="sid != null">
+        SID,
+      </if>
+      <if test="token != null">
+        TOKEN,
+      </if>
+      <if test="deviceid != null">
+        DEVICEID,
+      </if>
+      <if test="empId != null">
+        EMP_ID,
+      </if>
+      <if test="empName != null">
+        EMP_NAME,
+      </if>
+      <if test="osType != null">
+        OS_TYPE,
+      </if>
+      <if test="baseBand != null">
+        BASE_BAND,
+      </if>
+      <if test="loginState != null">
+        LOGIN_STATE,
+      </if>
+      <if test="deadline != null">
+        DEADLINE,
+      </if>
+      <if test="createDate != null">
+        CREATE_DATE,
+      </if>
+      <if test="updateDate != null">
+        UPDATE_DATE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="sid != null">
+        #{sid,jdbcType=NUMERIC},
+      </if>
+      <if test="token != null">
+        #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="deviceid != null">
+        #{deviceid,jdbcType=VARCHAR},
+      </if>
+      <if test="empId != null">
+        #{empId,jdbcType=VARCHAR},
+      </if>
+      <if test="empName != null">
+        #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="osType != null">
+        #{osType,jdbcType=VARCHAR},
+      </if>
+      <if test="baseBand != null">
+        #{baseBand,jdbcType=VARCHAR},
+      </if>
+      <if test="loginState != null">
+        #{loginState,jdbcType=CHAR},
+      </if>
+      <if test="deadline != null">
+        #{deadline,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null">
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.want.wantworld.entity.LoginToken">
+    update WANTWORLDV2.LOGIN_TOKEN
+    <set>
+      <if test="token != null">
+        TOKEN = #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="deviceid != null">
+        DEVICEID = #{deviceid,jdbcType=VARCHAR},
+      </if>
+      <if test="empId != null">
+        EMP_ID = #{empId,jdbcType=VARCHAR},
+      </if>
+      <if test="empName != null">
+        EMP_NAME = #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="osType != null">
+        OS_TYPE = #{osType,jdbcType=VARCHAR},
+      </if>
+      <if test="baseBand != null">
+        BASE_BAND = #{baseBand,jdbcType=VARCHAR},
+      </if>
+      <if test="loginState != null">
+        LOGIN_STATE = #{loginState,jdbcType=CHAR},
+      </if>
+      <if test="deadline != null">
+        DEADLINE = #{deadline,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createDate != null">
+        CREATE_DATE = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null">
+        UPDATE_DATE = #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+        <where>
+	      <if test="sid != null">
+	        and SID = #{sid,jdbcType=NUMERIC}
+	      </if>
+	      <if test="empId != null">
+	        and EMP_ID = #{empId,jdbcType=VARCHAR}
+	      </if>
+    </where>
+  </update>
+  
+   <select id="selectOneByParam" parameterType="java.lang.Short" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from WANTWORLDV2.LOGIN_TOKEN
+    <where>
+      <if test="sid != null">
+        and SID = #{sid,jdbcType=NUMERIC}
+      </if>
+      <if test="token != null">
+        and TOKEN = #{token,jdbcType=VARCHAR}
+      </if>
+      <if test="deviceid != null">
+        and DEVICEID = #{deviceid,jdbcType=VARCHAR}
+      </if>
+      <if test="empId != null">
+        and EMP_ID = #{empId,jdbcType=VARCHAR}
+      </if>
+      <if test="empName != null">
+        and EMP_NAME = #{empName,jdbcType=VARCHAR}
+      </if>
+      <if test="osType != null">
+        and OS_TYPE = #{osType,jdbcType=VARCHAR}
+      </if>
+      <if test="baseBand != null">
+        and BASE_BAND = #{baseBand,jdbcType=VARCHAR}
+      </if>
+      <if test="loginState != null">
+        and LOGIN_STATE = #{loginState,jdbcType=CHAR}
+      </if>
+      <if test="deadline != null">
+        and DEADLINE = #{deadline,jdbcType=TIMESTAMP}
+      </if>
+      <if test="createDate != null">
+        and CREATE_DATE = #{createDate,jdbcType=TIMESTAMP}
+      </if>
+      <if test="updateDate != null">
+        and UPDATE_DATE = #{updateDate,jdbcType=TIMESTAMP}
+      </if>
+    </where>
+  </select>
+</mapper>

@@ -1,0 +1,101 @@
+package com.want.po;
+import java.io.Serializable;
+import java.util.Date;
+
+
+public class ERPOrderDetail implements Serializable{
+
+    private static final long serialVersionUID = 2120869894112984147L;
+    
+    private String sid;
+    private String erpOrderSid;
+    private String productId;
+    private String productName;
+    private String unit;
+    private String unitName;
+    private Double count;
+    private Double salePrice;
+    private Double discountPrice;
+    private Double sumAmount;
+    private String createUser;
+    private Date createDate;
+    
+	public String getSid() {
+		return sid;
+	}
+	public void setSid(String sid) {
+		this.sid = sid;
+	}
+	public String getErpOrderSid() {
+		return erpOrderSid;
+	}
+	public void setErpOrderSid(String erpOrderSid) {
+		this.erpOrderSid = erpOrderSid;
+	}
+	public String getProductId() {
+		return productId;
+	}
+	public void setProductId(String productId) {
+		this.productId = productId;
+	}
+	public String getProductName() {
+		return productName;
+	}
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}
+	public String getUnit() {
+		return unit;
+	}
+	public void setUnit(String unit) {
+		this.unit = unit;
+	}
+	public String getUnitName() {
+		return unitName;
+	}
+	public void setUnitName(String unitName) {
+		this.unitName = unitName;
+	}
+	public Double getCount() {
+		return count;
+	}
+	public void setCount(Double count) {
+		this.count = count;
+	}
+	public Double getSalePrice() {
+		return salePrice;
+	}
+	public void setSalePrice(Double salePrice) {
+		this.salePrice = salePrice;
+	}
+	public Double getDiscountPrice() {
+		return discountPrice;
+	}
+	public void setDiscountPrice(Double discountPrice) {
+		this.discountPrice = discountPrice;
+	}
+	public Double getSumAmount() {
+		return sumAmount;
+	}
+	public void setSumAmount(Double sumAmount) {
+		this.sumAmount = sumAmount;
+	}
+	public String getCreateUser() {
+		return createUser;
+	}
+	public void setCreateUser(String createUser) {
+		this.createUser = createUser;
+	}
+	public Date getCreateDate() {
+		return createDate;
+	}
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+    
+	
+    
+    
+    
+    
+}

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper.MainProdMapper">
+
+     <!-- 	获取旺旺产品接口 --> 
+     <select id="getMainProd" resultType="com.want.dto.MainProd" parameterType="java.util.Map" >
+ 		SELECT  distinct 
+            A.PRODUCT_CODE as productCode,   
+            A.PRODUCT_NAME as productName,   
+            A.PRD_SHORT_NAME as prdShortName,  
+            A.UNIT as baseUnit,      
+            A.UNIT_NAME as baseUnitName,  
+            A.UNIT_WEIGHT as baseUnitWeight,
+            A.TAX as tax,           
+            A.STORAGE as storage,       
+            A.OUTER_CODE as outerCode,     
+            A.PRICE as price,         
+            A.STATUS as status,        
+            A.IMP as imp,           
+            B.UNIT as unit,          
+            B.UNIT_NAME as unitName,      
+            B.DENOMINATOR as denominator,   
+            B.NUMERATOR as numerator,     
+            B.SIMPLE_CODE as simpleCode,    
+            B.UNIT_WEIGHT as unitWeight, 
+            PL.lv1Id as lv1Id,         
+            PL.lv1Name as lv1Name,       
+            PL.lv2Id as lv2Id,         
+            PL.lv2Name  as lv2Name,
+			PL.lv3Id    as lv3Id,
+			PL.lv3Name  as lv3Name,
+			PL.lv4Id    as lv4Id,
+			PL.lv4Name  as lv4Name,
+			PL.lv5Id    as lv5Id,
+			PL.lv5Name  as lv5Name,
+            to_char(GREATEST(NVL(A.UPDATE_DATE,sysdate-300),NVL(B.UPDATE_DATE,sysdate-300),NVL(PL.UPDATE_DATE,sysdate-300)),'yyyy-mm-dd hh24:mi:ss') as updateDate
+        FROM SALESGROUP2_ODS.PRODUCT a
+        INNER JOIN SALESGROUP2_ODS.PRODUCT_UNITS B on a.PRODUCT_CODE =b.PRODUCT_CODE
+        INNER JOIN (
+				select
+				pl1.id as  lv1Id,
+				pl1.name as lv1Name,
+				pl2.id as  lv2Id,
+				pl2.name as lv2Name,
+				pl3.id as  lv3Id,
+				pl3.name as lv3Name,
+				pl4.id as  lv4Id,
+				pl4.name as lv4Name,
+				pl5.id as  lv5Id,
+				pl5.name as lv5Name,
+				GREATEST(NVL(pl1.UPDATE_DATE,sysdate-300),NVL(pl2.UPDATE_DATE,sysdate-300),NVL(pl3.UPDATE_DATE,sysdate-300),NVL(pl4.UPDATE_DATE,sysdate-300),NVL(pl5.UPDATE_DATE,sysdate-300)) as UPDATE_DATE
+				from SALESGROUP2_ODS.PRODUCT_LEVEL  pl5
+				LEFT JOIN SALESGROUP2_ODS.PRODUCT_LEVEL  pl4 on pl4.id=substr(pl5.id,1,12)
+				LEFT JOIN SALESGROUP2_ODS.PRODUCT_LEVEL  pl3 on pl3.id=substr(pl5.id,1,9)
+				LEFT JOIN SALESGROUP2_ODS.PRODUCT_LEVEL  pl2 on pl2.id=substr(pl5.id,1,6)
+				LEFT JOIN SALESGROUP2_ODS.PRODUCT_LEVEL  pl1 on pl1.id=substr(pl5.id,1,3)
+		) PL ON PL.lv5Id = a.STRUCTURE_CODE
+    	<where>
+	         <if test="startDate != null and startDate != '' ">
+                 AND GREATEST(NVL(A.UPDATE_DATE,sysdate-300),NVL(B.UPDATE_DATE,sysdate-300),NVL(PL.UPDATE_DATE,sysdate-300)) &gt;= to_date( #{startDate,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss') 
+             </if>
+             <if test="endDate != null and endDate != '' ">
+                 AND GREATEST(NVL(A.UPDATE_DATE,sysdate-300),NVL(B.UPDATE_DATE,sysdate-300),NVL(PL.UPDATE_DATE,sysdate-300)) &lt; to_date( #{endDate,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss')+1 
+             </if>		
+		</where>
+     </select>
+     <!--  --> 
+     
+     
+     
+</mapper>

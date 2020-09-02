@@ -1,0 +1,74 @@
+package com.want.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import com.want.dto.ErpOrderDetailDto;
+import com.want.dto.ErpOrderDto;
+import com.want.dto.OrderDetailDto;
+import com.want.dto.OrderDto;
+import com.want.dto.OrderInfoDto;
+import com.want.dto.Organization;
+import com.want.po.ERPOrder;
+import com.want.po.ERPOrderDetail;
+import com.want.po.OrderDetail;
+import com.want.po.OrderInfo;
+import com.want.po.PackageInfo;
+import com.want.po.ProductInfo;
+import com.want.vo.Order;
+
+@Mapper
+public interface OrderMapper { 
+	
+	public List<OrderInfo> orderList();
+	
+	public void insertOrderInfo(@Param("order")OrderInfo order); 
+	
+	public void insertOrderDetail(List<OrderDetail> list); 
+	
+	public List<Organization> orgList(@Param("empId")String empId);
+	
+	public long queryOrderByCode(@Param("orderCode")String orderCode);
+	
+	public List<ProductInfo> queryUnitByProductCode(@Param("productCode")String productCode);
+	
+	public List<PackageInfo> prodList(@Param("packageId")String packageId);
+	
+	public long insertERPOrder(List<ERPOrder> list);
+	
+	public void insertERPOrderDetail(List<ERPOrderDetail> list);
+	
+	// 根据 客户编号，订单编号，下单时间 获取订单信息 
+	List<OrderInfoDto> queryOrderByCondition(Order order);
+	
+	// 根据 订单编号,获取SOCS需求订单信息
+	OrderDto getOrderInfos(@Param("orderCode")String orderCode); 
+	
+	// 根据 订单编号,获取SOCS需求订单详情
+	List<OrderDetailDto> getOrderInfoDetails(@Param("orderCode")String orderCode); 
+	
+	// 根据 订单编号,获取采购订单信息
+    List<ErpOrderDto> getErpOrders(@Param("orderCode")String orderCode);
+    
+    // 根据 订单编号,获取采购订单信息
+    List<ErpOrderDto> getErpOrderBySid(@Param("sid")String sid);
+    
+    // 根据 订单编号,获取采购订单详情 
+    List<ErpOrderDetailDto> getErpOrderInfoDetails(@Param("erpOrderSid")String erpOrderSid);
+    
+    // 将erp 返回 erp订单编码，状态，错误原因根据订单编码更新
+    void updateErpOrder(Map<String,String> map);
+    
+    // 将erp 返回 erp订单详情编码，状态，错误原因根据订单明细编码更新
+    void updateErpOrderDetail(List<Map<String, String>> list);
+    
+    
+    
+    
+    
+    
+    
+} 

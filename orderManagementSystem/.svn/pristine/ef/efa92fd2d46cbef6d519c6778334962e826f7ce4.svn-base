@@ -1,0 +1,116 @@
+package com.want.dto;
+
+import java.io.Serializable;
+import java.util.List;
+
+@SuppressWarnings("serial")
+public class Customer implements Serializable{
+
+	private String customerCode;
+    private String abbreviation;
+    private String saleCompany;
+    private String distributionChannel;
+    private String productGroup;
+    private String orgName;
+    private String factory;
+    private String factoryName;
+    private String parentCode;
+    private String branchName;
+    private String sapBuyerCode;
+    private String sapBuyerName;
+    private String contact;
+    private String contactTel;
+    private List<CustomerReceverAddresses> customerReceverAddresses;
+    
+	public String getCustomerCode() {
+		return customerCode;
+	}
+	public void setCustomerCode(String customerCode) {
+		this.customerCode = customerCode;
+	}
+	public String getAbbreviation() {
+		return abbreviation;
+	}
+	public void setAbbreviation(String abbreviation) {
+		this.abbreviation = abbreviation;
+	}
+	public String getSaleCompany() {
+		return saleCompany;
+	}
+	public void setSaleCompany(String saleCompany) {
+		this.saleCompany = saleCompany;
+	}
+	public String getDistributionChannel() {
+		return distributionChannel;
+	}
+	public void setDistributionChannel(String distributionChannel) {
+		this.distributionChannel = distributionChannel;
+	}
+	public String getProductGroup() {
+		return productGroup;
+	}
+	public void setProductGroup(String productGroup) {
+		this.productGroup = productGroup;
+	}
+	public String getOrgName() {
+		return orgName;
+	}
+	public void setOrgName(String orgName) {
+		this.orgName = orgName;
+	}
+	public String getFactory() {
+		return factory;
+	}
+	public void setFactory(String factory) {
+		this.factory = factory;
+	}
+	public String getFactoryName() {
+		return factoryName;
+	}
+	public void setFactoryName(String factoryName) {
+		this.factoryName = factoryName;
+	}
+	public String getParentCode() {
+		return parentCode;
+	}
+	public void setParentCode(String parentCode) {
+		this.parentCode = parentCode;
+	}
+	public String getBranchName() {
+		return branchName;
+	}
+	public void setBranchName(String branchName) {
+		this.branchName = branchName;
+	}
+	public String getSapBuyerCode() {
+		return sapBuyerCode;
+	}
+	public void setSapBuyerCode(String sapBuyerCode) {
+		this.sapBuyerCode = sapBuyerCode;
+	}
+	public String getSapBuyerName() {
+		return sapBuyerName;
+	}
+	public void setSapBuyerName(String sapBuyerName) {
+		this.sapBuyerName = sapBuyerName;
+	}
+	public String getContact() {
+		return contact;
+	}
+	public void setContact(String contact) {
+		this.contact = contact;
+	}
+	public String getContactTel() {
+		return contactTel;
+	}
+	public void setContactTel(String contactTel) {
+		this.contactTel = contactTel;
+	}
+	public List<CustomerReceverAddresses> getCustomerReceverAddresses() {
+		return customerReceverAddresses;
+	}
+	public void setCustomerReceverAddresses(List<CustomerReceverAddresses> customerReceverAddresses) {
+		this.customerReceverAddresses = customerReceverAddresses;
+	}
+    
+}

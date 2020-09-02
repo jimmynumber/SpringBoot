@@ -1,0 +1,59 @@
+package com.want.service.impl;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.want.dto.ResponseEntity;
+import com.want.mapper.AttenceMapper;
+import com.want.service.IAttenceWebService;
+import com.want.vo.Attence;
+
+@Service
+@Transactional
+public class AttenceWebServiceImpl implements IAttenceWebService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AttenceWebServiceImpl.class);
+	
+	
+	@Autowired
+    private AttenceMapper attenceMapper;
+	
+	@Override
+	public ResponseEntity accessAttence(Attence attence) {
+		ResponseEntity result=new ResponseEntity();
+		if ( attence == null ) {
+			result.setType("E");
+			result.setMessage("考勤资料不能为空");
+			return result;
+		}
+		LOGGER.info("--AttenceWebService.accessAttence,attence:{} ",attence+"");
+		try {
+			String id = attence.getId();
+			//String dataType=attence.getDataType();// 1：新增数据,2：更新数据
+			result.setEid(id);
+			result.setType("S");
+			boolean isExist=attenceMapper.checkAttenceExist(id);
+			//&& "1".equals(dataType)
+			//&& "2".equals(dataType)
+			if ( !isExist  ) {
+				attenceMapper.insertAttence(attence);
+				result.setMessage("成功接收考勤资料");
+			}else if ( isExist ) {
+				attenceMapper.updateAttence(attence);
+				result.setMessage("成功更新考勤资料");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.setType("E");
+			result.setMessage("接受考勤资料失败");
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		}
+		return  result;
+		
+		
+	}
+
+}

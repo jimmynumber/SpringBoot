@@ -1,0 +1,12 @@
+package com.want.mapper;
+
+import java.util.List;
+import org.apache.ibatis.annotations.Mapper;
+import com.want.po.PackageInfo;
+
+@Mapper
+public interface CreateOrderMapper { 
+	
+	public List<PackageInfo> packageList();
+	
+} 

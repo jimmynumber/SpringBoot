@@ -1,0 +1,10 @@
+spring.datasource187.jdbc-url=jdbc:oracle:thin:@10.0.26.225:1521/ORCLPDB
+spring.datasource187.username=salesgroup2_rc
+spring.datasource187.password=salesgroup2_rc#TEST
+spring.datasource187.driver-class-name=oracle.jdbc.driver.OracleDriver
+
+spring.datasource188.jdbc-url=jdbc:oracle:thin:@10.0.26.225:1521/ORCLPDB
+spring.datasource188.username=SALESGROUP2_ODS
+spring.datasource188.password=salesgroup2_ods#TEST
+spring.datasource188.driver-class-name=oracle.jdbc.driver.OracleDriver
+

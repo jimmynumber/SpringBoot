@@ -1,0 +1,37 @@
+10.231.8.205:27017
+DataBase : admin
+userName : wwadmin
+password : 0ozj6DAj52
+
+DataBase : spider
+collection : PoiInfo (270萬, 2738120)
+MarketToForthAndThird (小標3(areaThirdName),4級地對應(township))
+GaodeMapPoiAddress(318萬, 3181161)
+GaodeMapPoiAddressNotMapping(442954), 沒有對應到的資料
+PoiList(PoiType對應表)
+
+分公司： companyID, companyName
+營業所：branchID, branchName
+標準市場：marketID, marketName
+小標市場：smallMarketID, smallMarketName
+設施類別：poiTypeList
+設施大類、中類、小類，會以, 組合成字串：poiTypeListString
+
+MySQL:
+IP : 10.0.26.224:3306
+Account : wwdevelop
+Password : 5tgb^YHN
+DBName : wantHD
+Table:data_department
+
+2017/12/19
+Took 2162847 mSeconds for 2738120 poi datq!
+----------------------------------------------
+以下為旺旺現有終端門店在mongodb的詳細資訊:
+10.231.8.205:27017
+DataBase : admin
+userName : wwadmin
+password : 0ozj6DAj52
+
+DataBase : spider
+collection : WantWantPoiInfo (1百萬)

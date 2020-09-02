@@ -1,0 +1,270 @@
+package com.want.service.impl;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.want.dto.AttributeInfo;
+import com.want.dto.ErpOrderDetailDto;
+import com.want.dto.ErpOrderDto;
+import com.want.dto.OrderDetailDto;
+import com.want.dto.OrderDto;
+import com.want.dto.OrderInfoDto;
+import com.want.dto.Organization;
+import com.want.mapper.OrderMapper;
+import com.want.po.PackageInfo;
+import com.want.service.IOrderService;
+import com.want.util.WebServiceUtil;
+import com.want.vo.ErpOrder;
+import com.want.vo.ErpOrder.SubErpOrder;
+import com.want.vo.Order;
+
+@Service 
+public class OrderServiceImpl implements IOrderService{
+	private static final Logger LOGGER = LoggerFactory.getLogger(OrderServiceImpl.class);
+	@Autowired
+    private OrderMapper orderMapper;
+	
+	List<Organization> orgList=null;
+	public List<Organization> orgList(String empId) {
+		List<Organization> list=new ArrayList<>();
+		orgList=null;
+		//根据人员查询所属组织及下级组织
+		orgList=orderMapper.orgList(empId); 
+		if(orgList!=null&&orgList.size()>0) {
+			//获取人员最高级组织节点
+			Organization org=orgList.get(0);
+			Organization orgJson=new Organization();
+			orgJson.setOrgId(org.getOrgId());
+			orgJson.setOrgName(org.getOrgName());
+			orgJson.setOrgLevel(org.getOrgLevel());
+			orgJson.setParentOrgID(org.getParentOrgID());
+			list.add(orgJson);
+			String orgId=org.getOrgId();
+			//根据最高级组织节点向下递归
+			recursive(orgId,orgJson);
+		}
+		return list; 
+	}
+	
+	public void recursive(String parentOrgID,Organization orgJson) { 
+		List<Organization> list1=new ArrayList<>();
+		//从1开始循环人员所属组织
+		for(int i=1;i<orgList.size();i++) {
+			Organization org=orgList.get(i);
+			if(parentOrgID.equals(org.getParentOrgID())) {
+				Organization childOrg=new Organization();
+				childOrg.setOrgId(org.getOrgId());
+				childOrg.setOrgName(org.getOrgName());
+				childOrg.setOrgLevel(org.getOrgLevel());
+				childOrg.setParentOrgID(org.getParentOrgID());
+				list1.add(childOrg);
+				String orgId=org.getOrgId();
+				//子节点再递归查下级节点
+				recursive(orgId,childOrg);
+			}
+		}
+		//将父节点所属子节点集和赋值到父节点元素内
+		orgJson.setChildOrg(list1);
+	}
+	
+	public Map<String,Object> cancelOrder(String updateUser,String orderId,String cancelReason) {
+		Map<String,Object> resultMap=new HashMap<>();
+		try {
+			long flag=orderMapper.queryERPOrderByCode(orderId);
+			if(flag==0) {
+				orderMapper.updateOrderStatus(updateUser,orderId,cancelReason);
+				resultMap.put("status", "C");
+				resultMap.put("desciption", "取消成功");
+			}else {
+				resultMap.put("status", "S");
+				resultMap.put("desciption", "该订单下有已处理的订单，无法取消");
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			resultMap.put("status", "ERROR");
+			resultMap.put("desciption", "系统异常，取消失败");
+		}
+		return resultMap;
+	}
+	
+	public List<PackageInfo> packageList(){
+		return orderMapper.packageList();
+	}
+	
+	@Override
+	public List<OrderInfoDto> queryOrderByCondition(Order order) {
+		if (null == order) {
+			//return null;
+		}
+		return orderMapper.queryOrderByCondition(order);
+	}
+
+	@Override
+	public OrderDto getOrderInfos(String orderCode) {
+		if ( null == orderCode || orderCode.trim().length()<= 0) {
+			//return null;
+		}
+		OrderDto item=orderMapper.getOrderInfos(orderCode);
+		List<OrderDetailDto> subList=orderMapper.getOrderInfoDetails(item.getOrderCode());
+		item.setNeedOrederInfoDetailDtoList(subList);
+		return item;
+	}
+	
+	@Override
+	public List<ErpOrderDto> getErpOrders(String orderCode) {
+		if ( null == orderCode || orderCode.trim().length()<= 0) {
+			//return null;
+		}
+		 List<ErpOrderDto> orderList=orderMapper.getErpOrders(orderCode);
+		 if(null != orderList && orderList.size()>0 ) {
+			 for (ErpOrderDto item : orderList) {
+				 item.setPurchaseOrederInfoDetailList(orderMapper.getErpOrderInfoDetails(item.getSid()));
+			}
+		 }		 
+	    return orderList;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<ErpOrderDto> updateErpOrders(List<String> sids,String empInfo) {
+		if ( null == sids || sids.size()<= 0) {
+			return null;
+		}
+		List<ErpOrderDto> retResult = new ArrayList<ErpOrderDto>();
+		boolean isFirst=false;
+		String orderCode="";
+		for (String sid : sids) {
+			 List<ErpOrderDto> orderList=orderMapper.getErpOrderBySid(sid);
+			 if(null != orderList && orderList.size()>0 ) {
+				 if (!isFirst) {
+					 isFirst=true;
+					 orderCode=orderList.get(0).getOrderCode();
+				 }
+				 for (ErpOrderDto item : orderList) {
+					List<ErpOrderDetailDto> erpOrderDetailList=orderMapper.getErpOrderInfoDetails(item.getSid());
+					// 发送资料并接收返回值
+			        Map<String, Object> retuenMap =WebServiceUtil.sendZRFCSD026(item, erpOrderDetailList);
+			        // erp 返回订单头信息
+			        Map<String, String> otvbakMap= (Map<String, String>) retuenMap.get("otvbakMap");
+				    // 将erp 返回 erp订单编码，状态，错误原因根据订单编码更新
+			        otvbakMap.put("empInfo", empInfo);
+					orderMapper.updateErpOrder(otvbakMap);	    
+				    // 将erp 返回 erp订单详情编码，状态，错误原因根据订单明细编码更新
+					orderMapper.updateErpOrderDetail((List<Map<String, String>>) retuenMap.get("otvbapMap"));
+					String erpOrderCode=otvbakMap.get("erpOrderCode");
+					String desciption=( erpOrderCode != null && erpOrderCode.trim().length()>0 )?erpOrderCode:otvbakMap.get("desciption");
+					item.setOrderStatus(otvbakMap.get("orderStatus"));
+					item.setFeedbackInfor(desciption);
+					item.setUpdateUser(empInfo);
+					item.setPurchaseOrederInfoDetailList(orderMapper.getErpOrderInfoDetails(item.getSid()));
+					retResult.add(item);
+				}
+			 }	
+		}
+		// 查询拆分后的订单 若全部成功，更新order_info.order_status  为"已处理"
+		if (orderCode != null && orderCode.trim().length()>0) {
+			this.changeOrderInfoStatus(orderCode);
+		}
+		return retResult;
+	}
+	
+	@Override
+	public Map<String,Object> closeOrder(ErpOrder erpOrder) {
+		if (erpOrder == null) {
+			return null;
+		}
+		LOGGER.info("OrderServiceImpl.closeOrderTest ErpOrder:{} ",erpOrder.toString());
+		Map<String,Object> resultMap=new HashMap<>();
+		List<Map<String,String>> list= new ArrayList<>();
+		String currentDate=this.getCurrentDate();
+		 
+		String orderCode=null; 
+		List<SubErpOrder> erpOrders=erpOrder.getErpOrders();
+		if ( null != erpOrders && erpOrders.size()>0) {
+			for (SubErpOrder item : erpOrders) {
+				String sid=item.getSid();
+				String desciption=item.getDesciption();
+				Map<String,String> map=new HashMap<>();
+				map.put("sid", sid);
+				// 根据erp_order 主键查询 订单状态
+		        Map<String,String> orderStatusMap=orderMapper.checkErpOrderStatus(sid);
+		        if (null == orderStatusMap || orderStatusMap.size() <= 0 ) {
+		        	map.put("status", "失败");
+		        	map.put("desciption", "找不到对应采购订单："+sid);
+		        	list.add(map);
+		        	continue;
+				}
+		        String orderStatus=orderStatusMap.get("ORDER_STATUS");
+		        orderCode=orderStatusMap.get("ORDER_CODE");
+		        //1）检查状态是否为null 或者 E（未处理过或抛失败的订单可以关闭）
+		        if( !"未处理".equals(orderStatus)) {
+		        	map.put("status", "失败");
+		        	map.put("desciption", "未处理过或抛失败的订单可以关闭");
+		        	list.add(map);
+		        	continue;
+		        }
+		        map.put("status", "关闭");
+				map.put("desciption", desciption);
+				map.put("currentDate", currentDate);
+				list.add(map);
+				
+				Map<String,String> paramMap=new HashMap<String,String>();
+				paramMap.put("sid", sid);
+		        paramMap.put("orderStatus", "C");
+		        paramMap.put("desciption", desciption);
+		        paramMap.put("empInfo", item.getEmpId()+"-"+item.getEmpName());
+		        paramMap.put("currentDate", currentDate);
+		        orderMapper.updateErpOrderStatus(paramMap);
+			}
+		}
+		// 检查该笔订单对应所有的拆单状态是否都为【已关闭-C】，
+		// 如果是：变更order_info.ORDER_STATUS状态为【已取消-C】
+		String orderStatus = this.changeOrderInfoStatus(orderCode);
+		resultMap.put("orderStatus", orderStatus);
+		resultMap.put("erpOrders", list);
+    	return resultMap;
+	}
+	
+	// 根据 订单编码orderCode 更新 order_info 订单状态
+	private String changeOrderInfoStatus(String orderCode) {
+		//1. 若拆分后订单状态 全部为 "关闭" ， 则order_info 订单状态 为"已取消" 
+		//2. 若拆分后订单状态 全部由 "成功"||"关闭" 组成， 则order_info 订单状态 为"已处理" 
+		//3. 其余为 未处理
+		Map<String,String> ErpOrderAllStatusMap=orderMapper.checkErpOrderAllStatus(orderCode);
+		String orderStatus = ErpOrderAllStatusMap.get("ORDER_STATUS");
+		String states="";
+		if("已取消".equals(orderStatus)) {
+			states="C";
+		}else if ("已处理".equals(orderStatus)) {
+			states="S";
+		}else {
+			//states="W";
+			return orderStatus;
+		}
+		Map<String,String> paramMap=new HashMap<String,String>();
+		paramMap.put("orderCode", orderCode);
+		paramMap.put("orderStatus", states);
+		orderMapper.updateOrderInfoStatus(paramMap);
+		return orderStatus;
+	}
+	
+	// 获取当前时间
+	private  String getCurrentDate() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");  
+		return formatter.format( Calendar.getInstance().getTime());
+	}
+
+	@Override
+	public List<AttributeInfo> getAttributeInfo(Map<String, String> map) {
+		return orderMapper.getAttributeInfo(map);
+	}
+}

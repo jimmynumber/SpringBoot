@@ -1,0 +1,14 @@
+package com.want.service;
+
+import java.util.List;
+
+import com.want.dto.Customer;
+import com.want.po.PackageInfo;
+
+public interface ICreateOrderService {
+
+	public List<PackageInfo> packageList();
+	
+	public List<Customer> customerList(String userId,String customerId,String customerName);
+	
+}

@@ -1,0 +1,36 @@
+package com.want.service;
+
+import java.util.List;
+import java.util.Map;
+import com.want.dto.AttributeInfo;
+import com.want.dto.ErpOrderDto;
+import com.want.dto.OrderDto;
+import com.want.dto.OrderInfoDto;
+import com.want.dto.Organization;
+import com.want.vo.ErpOrder;
+import com.want.vo.Order;
+
+public interface IOrderService {
+
+	public List<Organization> orgList(String empId);
+	
+	public Map<String,Object> cancelOrder(String updateUser,String orderId,String cancelReason);
+	
+	// 根据 客户编号，订单编号，下单时间 获取订单信息 
+	List<OrderInfoDto> queryOrderByCondition(Order order);
+	
+	// 根据 订单编号,获取SOCS需求订单信息及详情
+	OrderDto getOrderInfos(String orderCode); 
+	
+	// 根据 订单编号,获取采购订单信息及详情
+    List<ErpOrderDto> getErpOrders(String erpOrderSid);
+    
+    // 抛转erp 订单 并更新数据状态
+    List<ErpOrderDto> updateErpOrders(List<String> orderCodes,String empInfo);
+    
+    // 明细页面进行【关闭订单】
+    Map<String,Object> closeOrder(ErpOrder erpOrder);
+    
+    // 获取配置属性
+    List<AttributeInfo> getAttributeInfo(Map<String,String> map);
+}

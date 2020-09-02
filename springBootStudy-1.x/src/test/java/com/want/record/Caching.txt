@@ -1,0 +1,92 @@
+add pom.xml
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.21</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+		</dependency> 
+		
+add application.properties
+spring.datasource.url=jdbc:mysql://localhost:3306/test
+spring.datasource.username=root
+spring.datasource.password=123456
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+
+spring.jpa.properties.hibernate.hbm2ddl.auto=create-drop
+spring.jpa.properties.hibernate.show_sql=true 
+
+resources\ehcache.xml
+
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="ehcache.xsd">
+    <cache name="users"
+           maxEntriesLocalHeap="200"
+           timeToLiveSeconds="600">
+    </cache>
+</ehcache>
+ 
+ package com.didispace.domain;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
+@Entity
+public class User {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private Integer age;
+    ...g/s
+}
+
+package com.didispace.domain;
+
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.jpa.repository.JpaRepository;
+@CacheConfig(cacheNames = "users")
+public interface UserRepository extends JpaRepository<User, Long> {
+    @Cacheable(key = "#p0", condition = "#p0.length() < 10")
+    User findByName(String name);
+}
+
+package com.didispace;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+
+@SpringBootApplication
+@EnableCaching
+public class Application {
+	public static void main(String[] args) {
+		SpringApplication.run(Application.class, args);
+	}
+
+}
+ 
+ 

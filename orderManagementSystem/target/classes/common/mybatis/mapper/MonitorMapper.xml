@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper.MonitorMapper">
+
+     <!-- 检查是否存在同一笔信息 --> 
+	 <select id="checkMonitorExist" parameterType="java.lang.String" resultType="java.lang.Boolean">
+	    select decode(count(1),0,0,1) from SALESGROUP2_RC.MONITOR where SID = #{sid ,jdbcType=VARCHAR}
+  	 </select>
+     <!-- 写入资料  --> 
+     <insert id="insertMonitor" parameterType="com.want.dto.MonitorDto" >
+	     <selectKey keyProperty="sid" resultType="java.lang.String" order="BEFORE">  
+	           select to_char(SALESGROUP2_RC.MONITOR_SEQ.nextval) from dual  
+	     </selectKey>
+         insert into SALESGROUP2_RC.MONITOR
+         <trim prefix=" (" suffix=" ) " suffixOverrides=" , ">
+        	   SID,
+			<if test=" funcid != null and funcid != '' " > FUNC_ID,</if>
+			<if test=" startDate != null  " > START_DATE,</if>
+			<if test=" endDate != null   " > END_DATE,</if>
+			<if test=" status != null and status != '' " > STATUS,</if>
+			<if test=" issend != null and issend != '' " > IS_SEND,</if>
+			<if test=" eid != null and eid != '' " > EID,</if>
+			<if test=" type != null and type != '' " > TYPE,</if>
+			<if test=" message != null and message != '' " > MESSAGE,</if>
+			<if test=" createUser != null and createUser != '' " > CREATE_USER,</if>
+			   CREATE_DATE,
+			<if test=" updateUser != null and updateUser != '' " > UPDATE_USER,</if>
+			<if test=" updateDate != null   " > UPDATE_DATE,</if>
+			<if test=" reason != null and reason != '' " > REASON,</if>
+		</trim>
+		<trim prefix=" values ( " suffix=" ) " suffixOverrides=" , ">
+			  #{sid ,jdbcType=VARCHAR},
+			<if test=" funcid != null and funcid != '' " >  #{funcid ,jdbcType=VARCHAR},</if>
+			<if test=" startDate != null  " > #{startDate,jdbcType=TIMESTAMP} ,</if>
+			<if test=" endDate != null   " > #{endDate,jdbcType=TIMESTAMP} ,</if>
+			<if test=" status != null and status != '' " >  #{status ,jdbcType=VARCHAR},</if>
+			<if test=" issend != null and issend != '' " >  #{issend ,jdbcType=VARCHAR},</if>
+			<if test=" eid != null and eid != '' " >  #{eid ,jdbcType=VARCHAR},</if>
+			<if test=" type != null and type != '' " >  #{type ,jdbcType=VARCHAR},</if>
+			<if test=" message != null and message != '' " >  #{message ,jdbcType=VARCHAR},</if>
+			<if test=" createUser != null and createUser != '' " >  #{createUser ,jdbcType=VARCHAR},</if>
+			   sysdate,
+			<if test=" updateUser != null and updateUser != '' " >  #{updateUser ,jdbcType=VARCHAR},</if>
+			<if test=" updateDate != null  " > #{updateDate,jdbcType=TIMESTAMP},</if>
+			<if test=" reason != null and reason != '' " >  #{reason ,jdbcType=VARCHAR},</if>
+		</trim>
+     </insert>
+     <!-- 修改资料  --> 
+     <update id="updateMonitor" parameterType="com.want.dto.MonitorDto">
+     	update SALESGROUP2_RC.MONITOR
+     	<set>
+			<if test=" funcid != null and funcid != '' " > FUNC_ID = #{funcid ,jdbcType=VARCHAR},</if>
+			<if test=" startDate != null  " >START_DATE = #{startDate,jdbcType=TIMESTAMP}  ,</if>
+			<if test=" endDate != null  " >END_DATE =  #{endDate,jdbcType=TIMESTAMP}  ,</if>
+			<if test=" status != null and status != '' " >  STATUS =#{status ,jdbcType=VARCHAR},</if>
+			
+			<if test=" issend != null and issend != '' " >  IS_SEND =#{issend ,jdbcType=VARCHAR},</if>
+			<if test=" eid != null and eid != '' " >  EID =#{eid ,jdbcType=VARCHAR},</if>
+			<if test=" type != null and type != '' " >  TYPE =#{type ,jdbcType=VARCHAR},</if>
+			<if test=" message != null and message != '' " >  MESSAGE =#{message ,jdbcType=VARCHAR},</if>
+			<if test=" createUser != null and createUser != '' " >  CREATE_USER =#{createUser ,jdbcType=VARCHAR},</if>
+			<if test=" updateUser != null and updateUser != '' " >  UPDATE_USER = #{updateUser ,jdbcType=VARCHAR},</if>
+			    UPDATE_DATE =  sysdate,
+			<if test=" reason != null and reason != '' " >  REASON =#{reason ,jdbcType=VARCHAR},</if>    
+     	</set>
+     	where ID = #{id ,jdbcType=VARCHAR}
+     </update>
+     <!--  --> 
+</mapper> 

@@ -1,0 +1,11 @@
+package com.want.service;
+
+import java.util.List;
+import com.want.dto.OTReturn;
+import com.want.po.Paging;
+import com.want.vo.StoreVisit;
+
+public interface IStoreVisitWebService {
+	
+	OTReturn syncStoreVisit(List<StoreVisit> storeVisit,Paging page);
+}

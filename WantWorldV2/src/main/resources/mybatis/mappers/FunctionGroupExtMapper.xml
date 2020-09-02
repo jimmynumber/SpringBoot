@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.wantworld.dao.FunctionGroupDao">
+  <!-- 根据员工号查询有权限的菜单组 -->
+  <select id="selectMenuGroupList" parameterType="java.lang.String" resultType="com.want.wantworld.vo.MenuGroup">
+    SELECT 
+    FG.FUNC_GROUP_ID AS groupId,
+    FUNC_GROUP_NAME AS groupName,
+    GROUP_URL AS groupUrl,
+    FUNC_TYPE AS groupType,
+    FUNC_GROUP_ICON AS groupIcon
+    FROM WANTWORLDV2.FUNCTION_GROUP FG
+    INNER JOIN WANTWORLDV2.USER_GROUP_FUNC_GROUP_REL UGFGR ON FG.FUNC_GROUP_ID = UGFGR.FUNC_GROUP_ID AND FG.STATUS = 1
+    INNER JOIN WANTWORLDV2.USER_GROUP UG ON UGFGR.USER_GROUP_ID = UG.USER_GROUP_ID AND UG.STATUS = 1 
+    INNER JOIN WANTWORLDV2.USER_INFO UI ON UG.USER_GROUP_ID = UI.USER_GROUP_ID
+    WHERE UI.EMP_ID = #{empId,jdbcType=VARCHAR}
+    ORDER BY FG.IN_ORDER
+  </select>
+</mapper>

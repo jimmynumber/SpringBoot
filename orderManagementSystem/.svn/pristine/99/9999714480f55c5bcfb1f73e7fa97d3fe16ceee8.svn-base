@@ -1,0 +1,64 @@
+package com.want.service.impl;
+
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.want.dto.Customer;
+import com.want.dto.CustomerReceverAddresses;
+import com.want.mapper.CreateOrderMapper;
+import com.want.po.PackageInfo;
+import com.want.po.PromoteInfo;
+import com.want.service.ICreateOrderService;
+
+@Service 
+public class CreateOrderServiceImpl implements ICreateOrderService{
+	private static final Logger LOGGER = LoggerFactory.getLogger(CreateOrderServiceImpl.class);
+	@Autowired
+    private CreateOrderMapper createOrderMapper;
+	
+	public List<PackageInfo> packageList(String saleCompany,String distributionChannel,String productGroup){
+		return createOrderMapper.packageList(saleCompany,distributionChannel,productGroup);
+	}
+	
+	public List<Customer> customerList(String userId,String customerId,String customerName){
+		List<Customer> customerList = createOrderMapper.customerList(userId, customerId, customerName);
+		if(customerList.size()>0&&customerList!=null) {
+			for(int i=0;i<customerList.size();i++) {
+				Customer customer = customerList.get(i);
+				List<CustomerReceverAddresses> customerReceverAddresses = createOrderMapper.customerReceverAddressesList(customer.getCustomerCode());
+				customer.setCustomerReceverAddresses(customerReceverAddresses);
+			}
+		}
+		return customerList;
+	}
+	
+	//普通产品价格查询
+	//取值逻辑根据-客户别价格（销售组织+渠道+物料+客户）>渠道产品组别价格（销售组织+渠道+产品组+物料）  >渠道别价格（销售组织+渠道+物料)
+	//价格取有效的且在当前时间段内的
+	public Double getProductPrice(String saleCompany,String distributionChannel,String productGroup,
+			String productCode,String customerCode){ 
+		Double price = (double) 0;
+		price = createOrderMapper.getProductPrice(saleCompany,distributionChannel,"",productCode,customerCode);
+		if(price==null) {
+			price = createOrderMapper.getProductPrice(saleCompany,distributionChannel,productGroup,productCode,"");
+		}
+		if(price==null) {
+			price = createOrderMapper.getProductPrice(saleCompany,distributionChannel,"",productCode,"");
+		}
+		return price;
+	}
+	
+	//根据条件查询产品是否有且符合的促销政策
+	public PromoteInfo validationPromote(String customerCode,String productCode,
+			String distributionChannel,String productGroup) { 
+		PromoteInfo promote = null;
+		List<PromoteInfo> promotes = createOrderMapper.promoteList(productCode,distributionChannel,productGroup,customerCode);
+		if(promotes!=null&&promotes.size()==1) {
+			promote = promotes.get(0);
+		}
+		return promote;
+	}
+	
+}

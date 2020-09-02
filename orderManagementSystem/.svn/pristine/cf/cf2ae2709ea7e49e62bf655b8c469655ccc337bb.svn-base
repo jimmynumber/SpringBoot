@@ -1,0 +1,255 @@
+package com.want.util;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import com.want.dto.ErpOrderDetailDto;
+import com.want.dto.ErpOrderDto;
+import com.want.webservice.ZRFCSD026.DTREQZRFCSD026;
+import com.want.webservice.ZRFCSD026.DTREQZRFCSD026.ITVBAK;
+import com.want.webservice.ZRFCSD026.DTREQZRFCSD026.ITVBAP;
+import com.want.webservice.ZRFCSD026.DTRESZRFCSD026;
+import com.want.webservice.ZRFCSD026.DTRESZRFCSD026.OTVBAK;
+import com.want.webservice.ZRFCSD026.DTRESZRFCSD026.OTVBAP;
+import com.want.webservice.ZRFCSD026.SIOZRFCSD026Service;
+
+/**
+ * @description 调用接口service
+ * @author 00320558 
+ * @serialData 2019-09-18
+ * @version V1.0.0
+ */
+public class WebServiceUtil {
+	
+	public static String getObjectValue(Object value) {
+		return value != null && !"".equals(value) ? value.toString() : "";
+	}
+	
+	/**
+	 *  字符型日期 转 XMLGregorianCalendar
+	 */
+	public static XMLGregorianCalendar stringToGregorian(String dateStr) {
+		if (dateStr ==null || dateStr.trim().length()<=0 ) {
+			return null;
+		}
+		XMLGregorianCalendar gc = null; 
+		try {
+			Date date = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+			GregorianCalendar cal = new GregorianCalendar();  
+	        cal.setTime(date);  
+	        gc = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal); 
+		} catch ( Exception e) {
+			e.printStackTrace();
+			return null;
+		}		
+		return gc;
+		
+	}
+	/**
+	 * @author 00320558
+	 * @serialData 2019-09-18
+	 * @description 抛转ERP订单接口 
+	 */
+	public static Map<String, Object> sendZRFCSD026(ErpOrderDto erpOrderDto,List<ErpOrderDetailDto> erpOrderDetailList){
+		DTREQZRFCSD026 req=new DTREQZRFCSD026();
+		// 传入订单信息
+		ITVBAK erpOrder=new ITVBAK();
+		erpOrder.setBSTNK(getObjectValue(erpOrderDto.getSid()));                     //客户采购订单编号
+		erpOrder.setVKORG(getObjectValue(erpOrderDto.getSaleCompnayId()));                 //销售组织
+		erpOrder.setVTWEG(getObjectValue(erpOrderDto.getDistributionChannelId()));         //分销渠道
+		erpOrder.setSPART(getObjectValue(erpOrderDto.getProductGroupId()));                //产品组
+		erpOrder.setKUNNR(getObjectValue(erpOrderDto.getSapBuyerId()));                    //客户编号
+		erpOrder.setKUNNR1(getObjectValue(erpOrderDto.getSapReceiverId()));                //送达方
+		erpOrder.setPRSDT(stringToGregorian(getObjectValue(erpOrderDto.getOrderTime())));  //单日期
+		erpOrder.setMEMO(getObjectValue(erpOrderDto.getMemo()));                           //订单备注
+		System.out.println("erpOrder:BSTNK 客户采购订单编号 "+ erpOrder.getBSTNK());
+		System.out.println("erpOrder:VKORG 销售组织 "+ erpOrder.getVKORG());
+		System.out.println("erpOrder:VTWEG 分销渠道 "+ erpOrder.getVTWEG());
+		System.out.println("erpOrder:SPART 产品组 "+ erpOrder.getSPART());
+		System.out.println("erpOrder:KUNNR 客户编号 "+ erpOrder.getKUNNR());
+		System.out.println("erpOrder:KUNNR1 送达方 "+ erpOrder.getKUNNR1());
+		System.out.println("erpOrder:PRSDT 单日期 "+ erpOrder.getPRSDT());
+		System.out.println("erpOrder:MEMO 订单备注 "+ erpOrder.getMEMO()); 
+		req.getITVBAK().add(erpOrder);
+        // 传入订单明细 
+		if( null != erpOrderDetailList && erpOrderDetailList.size()>0 ) {
+        	for (ErpOrderDetailDto item : erpOrderDetailList) {
+        		ITVBAP erpOrderDeatail = new ITVBAP();
+        		erpOrderDeatail.setBSTNK(getObjectValue(erpOrderDto.getSid()));          //客户采购订单编号
+        		erpOrderDeatail.setPOSNR1(getObjectValue(item.getLineNumber()));         //采购订单的行项目号
+        		erpOrderDeatail.setMATNR(getObjectValue(item.getProductId()));           //物料号
+        		erpOrderDeatail.setLGORT(getObjectValue(item.getStockAddresId()));       //库存地点
+        		erpOrderDeatail.setPRICE(getObjectValue(item.getDiscountPrice()));       //开单单价
+        		erpOrderDeatail.setUNIT(getObjectValue(item.getUnit()));                 //数量的单位
+        		erpOrderDeatail.setKWMENG(getObjectValue(item.getCount()));              //开单数量
+        		erpOrderDeatail.setCMPRE(getObjectValue(item.getSumAmount()));           //开单金额
+        		erpOrderDeatail.setMEMO(getObjectValue(item.getItemMemo()));             //行备注信息
+        		System.out.println("erpOrderDeatail:BSTNK 客户采购订单编号 "+ erpOrderDeatail.getBSTNK());
+        		System.out.println("erpOrderDeatail:POSNR1 采购订单的行项目号 "+ erpOrderDeatail.getPOSNR1());
+        		System.out.println("erpOrderDeatail:MATNR 物料号 "+ erpOrderDeatail.getMATNR());
+        		System.out.println("erpOrderDeatail:LGORT 库存地点 "+ erpOrderDeatail.getLGORT());
+        		System.out.println("erpOrderDeatail:PRICE 开单单价 "+ erpOrderDeatail.getPRICE());
+        		System.out.println("erpOrderDeatail:UNIT 数量的单位 "+ erpOrderDeatail.getUNIT());
+        		System.out.println("erpOrderDeatail:KWMENG 开单数量 "+ erpOrderDeatail.getKWMENG());
+        		System.out.println("erpOrderDeatail:CMPRE 开单金额 "+ erpOrderDeatail.getCMPRE());
+        		System.out.println("erpOrderDeatail:MEMO 行备注信息 "+ erpOrderDeatail.getMEMO());
+        		req.getITVBAP().add(erpOrderDeatail);
+			}
+        }
+		Map<String, Object> map = new HashMap<String, Object>();
+		SIOZRFCSD026Service service=new SIOZRFCSD026Service();
+		DTRESZRFCSD026 res=service.getHTTPPort().siOZRFCSD026(req);
+		List<DTRESZRFCSD026 .OTVBAK> otvbak=res.getOTVBAK();
+		if(null != otvbak && otvbak.size()>0 ) {
+			OTVBAK otvbak2=otvbak.get(0);
+				/*
+				 * BSTNK    orderCode    客户采购订单编号 
+				 * TEXT200  desciption   SAP返回 
+				 * VBELN    erpOrderCode 销售订单号
+				 *          orderStatus  成功:"S",失败:"E"
+				 */
+			    Map<String, String> otvbakMap=new HashMap<String, String>();
+				System.out.println("客户采购订单编号:"+otvbak2.getBSTNK());
+				System.out.println("SAP返回:"+otvbak2.getTEXT200());
+				System.out.println("销售订单号:"+otvbak2.getVBELN());
+				System.out.println("-----------------"+"\r\n");
+				otvbakMap.put("orderCode", otvbak2.getBSTNK());
+				otvbakMap.put("desciption", otvbak2.getTEXT200());
+				otvbakMap.put("erpOrderCode", otvbak2.getVBELN().replaceAll("^(0+)", ""));
+				String erpOrderCode=otvbak2.getVBELN();
+				String orderStatus=( erpOrderCode != null && erpOrderCode.trim().length()>0 )?"S":"E";
+				otvbakMap.put("orderStatus", orderStatus);
+				map.put("otvbakMap", otvbakMap);
+		}
+		List<Map<String, String>> otvbaps =new ArrayList<Map<String, String>>();
+		List<DTRESZRFCSD026 .OTVBAP> otvbap=res.getOTVBAP();
+		if(null != otvbap && otvbap.size()>0 ) {
+			for (OTVBAP otvbap2 : otvbap) {
+				Map<String, String> otvbapMap=new HashMap<String, String>();
+				/*
+				 * BSTNK   orderCode    客户采购订单编号 
+				 * POSNR1  sid          采购订单的行项目号 
+				 * POSNR   erpOrderLine 销售订单的行项目号
+				 * TEXT200 desciption   SAP返回
+				 */
+				System.out.println("客户采购订单编号:"+otvbap2.getBSTNK());
+				System.out.println("采购订单的行项目号:"+otvbap2.getPOSNR1());
+				System.out.println("销售订单的行项目号:"+otvbap2.getPOSNR());
+				System.out.println("SAP返回:"+otvbap2.getTEXT200());
+				System.out.println("-----------------"+"\r\n");
+				otvbapMap.put("orderCode", otvbap2.getBSTNK());
+				otvbapMap.put("sid", otvbap2.getPOSNR1().replaceAll("^(0+)", ""));
+				otvbapMap.put("erpOrderLine", otvbap2.getPOSNR().replaceAll("^(0+)", ""));
+				otvbapMap.put("desciption", otvbap2.getTEXT200());
+				otvbaps.add(otvbapMap);
+			}
+		}
+	    map.put("otvbapMap", otvbaps);
+	    return map;
+	}
+
+	public static void main(String[] args) {
+		test();
+	}
+	
+	public static void  test() {
+		/**
+		 BSTNK                   VKORG   VTWEG   SPART   KUNNR       KUNNR1      PRSDT       MEMO                                        　
+		 21000001201909100000    C821    CM       F8    11037469    11037469    2019.09.19   TEST111 　
+		 */
+		ErpOrderDto erpOrderDto=new ErpOrderDto();
+		erpOrderDto.setOrderCode("21000001201909100002"); //客户采购订单编号
+		erpOrderDto.setSaleCompnayId("C821");             //销售组织
+		erpOrderDto.setDistributionChannelId("CM");       //分销渠道
+		erpOrderDto.setProductGroupId("F8");              //产品组
+		erpOrderDto.setSapBuyerId("11037469");            //客户编号
+		erpOrderDto.setSapReceiverId("11037469");         //送达方
+		erpOrderDto.setOrderTime("2019-09-19");           //单日期
+		erpOrderDto.setMemo("需求订单数据");              //订单备注
+		
+		/**
+		BSTNK                 POSNR1 MATNR        LGORT PRICE  UNIT KWMENG CMPRE   MEMO                               
+		21000001201909100000  1      306106167802 1001  15     CAR  10     150     T
+		21000001201909100000  2      306107010100 1001  12     CAR  11     120     T    
+		 */
+		
+		List<ErpOrderDetailDto> erpOrderDetailList =new ArrayList<ErpOrderDetailDto>();
+		ErpOrderDetailDto erpOrderDetailDto=new ErpOrderDetailDto();
+		erpOrderDetailDto.setLineNumber("1");               //采购订单的行项目号
+		erpOrderDetailDto.setProductId("306106167802");     //物料号
+		erpOrderDetailDto.setStockAddresId("1001");         //库存地点
+		erpOrderDetailDto.setSalePrice("15");               //开单单价
+		erpOrderDetailDto.setUnit("CAR");                   //数量的单位
+		erpOrderDetailDto.setCount("10");                   //开单数量
+		erpOrderDetailDto.setSumAmount("150");              //开单金额
+		erpOrderDetailDto.setItemMemo("第一笔明细");        //行备注信息
+		erpOrderDetailList.add(erpOrderDetailDto);
+		
+		erpOrderDetailDto=new ErpOrderDetailDto();
+		erpOrderDetailDto.setLineNumber("2");               //采购订单的行项目号
+		erpOrderDetailDto.setProductId("306107010100");     //物料号
+		erpOrderDetailDto.setStockAddresId("1001");         //库存地点
+		erpOrderDetailDto.setSalePrice("12");               //开单单价
+		erpOrderDetailDto.setUnit("CAR");                   //数量的单位
+		erpOrderDetailDto.setCount("11");                   //开单数量
+		erpOrderDetailDto.setSumAmount("120");              //开单金额
+		erpOrderDetailDto.setItemMemo("第二笔明细");        //行备注信息
+		erpOrderDetailList.add(erpOrderDetailDto);
+		
+		sendZRFCSD026(erpOrderDto, erpOrderDetailList);
+	}	
+	
+	public static void  test_1() {
+		/**
+		 BSTNK                   VKORG   VTWEG   SPART   KUNNR       KUNNR1      PRSDT       MEMO                                        　
+		 21000001201909100000    C821    CM       F8    11037469    11037469    2019.09.19   TEST111 　
+		 */
+		ErpOrderDto erpOrderDto=new ErpOrderDto();
+		erpOrderDto.setOrderCode("21000001201909100002"); //客户采购订单编号
+		erpOrderDto.setSaleCompnayId("C821");             //销售组织
+		erpOrderDto.setDistributionChannelId("CM");       //分销渠道
+		erpOrderDto.setProductGroupId("F8");              //产品组
+		erpOrderDto.setSapBuyerId("11037469");            //客户编号
+		erpOrderDto.setSapReceiverId("11037469");         //送达方
+		erpOrderDto.setOrderTime("2019-09-19");           //单日期
+		erpOrderDto.setMemo("需求订单数据");              //订单备注
+		
+		/**
+		BSTNK                 POSNR1 MATNR        LGORT PRICE  UNIT KWMENG CMPRE   MEMO                               
+		21000001201909100000  1      306106167802 1001  15     CAR  10     150     T
+		21000001201909100000  2      306107010100 1001  12     CAR  11     120     T    
+		*/
+		
+		List<ErpOrderDetailDto> erpOrderDetailList =new ArrayList<ErpOrderDetailDto>();
+		ErpOrderDetailDto erpOrderDetailDto=new ErpOrderDetailDto();
+		erpOrderDetailDto.setLineNumber("1");               //采购订单的行项目号
+		erpOrderDetailDto.setProductId("306106167802");     //物料号
+		erpOrderDetailDto.setStockAddresId("1001");         //库存地点
+		erpOrderDetailDto.setSalePrice("15");               //开单单价
+		erpOrderDetailDto.setUnit("CAR");                   //数量的单位
+		erpOrderDetailDto.setCount("10");                   //开单数量
+		erpOrderDetailDto.setSumAmount("150");              //开单金额
+		erpOrderDetailDto.setItemMemo("第一笔明细");        //行备注信息
+		erpOrderDetailList.add(erpOrderDetailDto);
+		
+	    erpOrderDetailDto=new ErpOrderDetailDto();
+	    erpOrderDetailDto.setLineNumber("2");               //采购订单的行项目号
+	    erpOrderDetailDto.setProductId("306107010100");     //物料号
+	    erpOrderDetailDto.setStockAddresId("1001");         //库存地点
+	    erpOrderDetailDto.setSalePrice("12");               //开单单价
+	    erpOrderDetailDto.setUnit("CAR");                   //数量的单位
+	    erpOrderDetailDto.setCount("11");                   //开单数量
+	    erpOrderDetailDto.setSumAmount("120");              //开单金额
+	    erpOrderDetailDto.setItemMemo("第二笔明细");        //行备注信息
+	    erpOrderDetailList.add(erpOrderDetailDto);
+
+	    sendZRFCSD026(erpOrderDto, erpOrderDetailList);
+	}	
+	
+}

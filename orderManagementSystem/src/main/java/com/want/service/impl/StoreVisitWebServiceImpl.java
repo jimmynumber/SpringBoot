@@ -1,0 +1,182 @@
+package com.want.service.impl;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.want.dto.OTReturn;
+import com.want.mapper.VisitTractingMapper;
+import com.want.po.Paging;
+import com.want.po.StoreVisitTagTime;
+import com.want.service.IStoreVisitWebService;
+import com.want.vo.StoreVisit;
+import com.want.vo.StoreVisit.TagTime;
+
+@Service
+//@Transactional
+public class StoreVisitWebServiceImpl implements IStoreVisitWebService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(StoreVisitWebServiceImpl.class);
+	@Autowired
+    private VisitTractingMapper mapper;
+	
+	private final static Integer BATCH_SIZE=50;
+	private final static Integer corePoolSize =4;     // 线程池中核心线程数的最大值
+	private final static Integer maximumPoolSize =4; // 线程池中能拥有最多线程数
+	
+	private static ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.MINUTES,
+			new SynchronousQueue<Runnable>(),new ThreadPoolExecutor.CallerRunsPolicy());
+	
+	@Override
+	public OTReturn syncStoreVisit(List<StoreVisit> storeVisit,Paging page) {
+		long begingTime = System.currentTimeMillis();
+		OTReturn otReturn=new OTReturn();
+		SimpleDateFormat dateFormat= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat dateFormat1= new SimpleDateFormat("yyyyMMddHHmmss");
+		System.out.println("BEGINDATE:"+dateFormat.format(new Date()));
+		try {
+			if(storeVisit!=null&&storeVisit.size()>0) {
+				LOGGER.info("StoreVisit.syncStoreVisit 总批次:{},当前批次:{},数据量:{} ",page.getTotal(),page.getCurrent(),storeVisit.size());
+				if(page.getCurrent()==1) {
+					// 首次推送数据 清空临时表数据，防止推送失败重新推送数据
+					mapper.truncateStoreVisitTmp();
+					mapper.truncateTagTimeTmp();
+				}
+				Integer times = (storeVisit.size()+BATCH_SIZE-1)/BATCH_SIZE; 
+				 // TODO 创建4个线程
+		        //ExecutorService executor = Executors.newFixedThreadPool(corePoolSize);
+		        long startTime = System.currentTimeMillis();
+				CountDownLatch countDownLatch = new CountDownLatch(times);// corePoolSize
+				for (int i = 0; i < times; i++) {
+					int begin=i*BATCH_SIZE;
+					int end=(i+1)*BATCH_SIZE;
+					//LOGGER.info("第{}批，开始:{}，结束;{}",i+1,begin,end);
+					String date1= dateFormat1.format(new Date());
+			        executor.submit(new Runnable() {
+			                @Override
+			                public void run() {
+			                	long start = System.currentTimeMillis();
+			                    try {
+			    					List<StoreVisit> storeVisits = new ArrayList<StoreVisit>();
+			    					List<StoreVisitTagTime> storeVisitTagTimes = new ArrayList<StoreVisitTagTime>();
+			    					for(int j = begin;j < end && j < storeVisit.size();j++) {
+			    						String sid = date1+j;
+			    						StoreVisit storeVisit1=storeVisit.get(j);
+			    						storeVisit1.setSid(sid);
+			    						storeVisits.add(storeVisit1);
+			    						for (TagTime tagTime : storeVisit1.getLabelFees()) {
+			    							StoreVisitTagTime storeVisitTagTime = new StoreVisitTagTime();
+			    							storeVisitTagTime.setStoreVisitSid(sid);
+			    							storeVisitTagTime.setTagTimeType("1");
+			    							storeVisitTagTime.setDate(tagTime.getDate());
+			    							storeVisitTagTime.setName(tagTime.getName());
+			    							storeVisitTagTime.setDataTime(storeVisit.get(0).getDataTime());
+			    							storeVisitTagTimes.add(storeVisitTagTime);
+			    						}
+			    						for (TagTime tagTime : storeVisit1.getCounterMark()) {
+			    							StoreVisitTagTime storeVisitTagTime = new StoreVisitTagTime();
+			    							storeVisitTagTime.setStoreVisitSid(sid);
+			    							storeVisitTagTime.setTagTimeType("2");
+			    							storeVisitTagTime.setDate(tagTime.getDate());
+			    							storeVisitTagTime.setName(tagTime.getName());
+			    							storeVisitTagTime.setDataTime(storeVisit.get(0).getDataTime());
+			    							storeVisitTagTimes.add(storeVisitTagTime);
+			    						}
+			    					}
+			    					if(storeVisits != null && storeVisits.size() > 0) {
+			    						mapper.insertStoreVisitTmp(storeVisits);
+			    						mapper.insertTagTimeTmp(storeVisitTagTimes);
+			    					}
+			    					otReturn.setTYPE("S");
+			    					otReturn.setMESSAGE("接收成功");
+			                    } catch (Exception e) {
+			                        LOGGER.error("Exception...错误：{}",  e);
+			                    } finally {
+			                    	LOGGER.info("第"+(begin/BATCH_SIZE+1)+"批数据写入" + (System.currentTimeMillis() - start)/1000 + "秒");
+			                        countDownLatch.countDown();
+			                    }
+			                }
+			            });
+				}
+				/**/
+				try {
+		            countDownLatch.await();
+		        } catch (InterruptedException e) {
+		        	LOGGER.error("同步失败:InterruptedException e"+e.toString());
+		            e.printStackTrace();
+		        }
+				
+				LOGGER.info(corePoolSize+"个线程执行用时: " + (System.currentTimeMillis() - startTime)/1000 + "秒");
+				/*
+				// TODO 结束所有线程
+				executor.shutdown();
+			     // TODO 这个方法是统计所有线程全部执行完毕的时间
+		        while(true){
+		            if(executor.isTerminated()){
+		                LOGGER.info(corePoolSize+"个线程执行用时: " + (System.currentTimeMillis() - startTime)/1000 + "秒");
+		                break;
+		            }
+		        }
+		        */
+			}else {
+				otReturn.setTYPE("E");
+				otReturn.setMESSAGE("参数为空");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			otReturn.setTYPE("E");
+			otReturn.setMESSAGE("同步失败:"+e.toString());
+			LOGGER.error("同步失败:"+e.toString());
+			//TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		}
+		Date date2 = new Date();
+		System.out.println("ENDDATE:"+dateFormat.format(date2));
+		if ("S".equals(otReturn.getTYPE()) && page.getTotal()==page.getCurrent()) {
+			// 全部推送成功后 先根据临时表数据中时间范围 删除目的表数据，
+			// 将临时表数据倒入目的表中，
+			// 清空临时表 
+				new Thread(() -> {
+					long startTime = System.currentTimeMillis();
+					long startTime1=startTime;
+					mapper.deleteStoreVisit(null);
+					LOGGER.info("删除拜访数据用时: " + (System.currentTimeMillis() - startTime)/1000 + "秒");
+					
+					startTime = System.currentTimeMillis();
+					mapper.clearTagTime(null);
+					LOGGER.info("删除拜访明细数据用时: " + (System.currentTimeMillis() - startTime)/1000 + "秒");
+					
+					startTime = System.currentTimeMillis();
+					mapper.mergerStoreVisit();
+					LOGGER.info("合并拜访数据用时: " + (System.currentTimeMillis() - startTime)/1000 + "秒");
+					
+					startTime = System.currentTimeMillis();
+					mapper.mergerTagTime();
+					LOGGER.info("合并拜访明细数据用时: " + (System.currentTimeMillis() - startTime)/1000 + "秒");
+					
+					startTime = System.currentTimeMillis();
+					mapper.truncateStoreVisitTmp();
+					LOGGER.info("删除拜访临时变数据用时: " + (System.currentTimeMillis() - startTime)/1000 + "秒");					
+					
+					startTime = System.currentTimeMillis();
+					mapper.truncateTagTimeTmp();
+					LOGGER.info("删除拜访明细临时变数据用时: " + (System.currentTimeMillis() - startTime)/1000 + "秒");
+					
+					LOGGER.info("成功将临时表数据同步到目的表数据用时: " + (System.currentTimeMillis() - startTime1)/1000 + "秒");
+				}).start();
+		}
+		
+		LOGGER.info("StoreVisit.syncStoreVisit--end 总批次:{},当前批次:{},数据量:{},耗时{}",page.getTotal(),page.getCurrent(),storeVisit.size(),(System.currentTimeMillis() - begingTime)/1000 + "秒");
+		return otReturn;
+	}
+	
+
+}

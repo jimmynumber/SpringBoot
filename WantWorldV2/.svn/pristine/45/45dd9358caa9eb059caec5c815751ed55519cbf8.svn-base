@@ -1,0 +1,72 @@
+package com.want.wantworld.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.want.wantworld.service.ICryptoService;
+import com.want.wantworld.service.ILoginService;
+import com.want.wantworld.vo.LoginVo;
+ 
+
+@CrossOrigin
+@RestController 
+public class LoginController {
+
+	private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+	
+	@Autowired
+    private ILoginService service;
+	
+	@Autowired
+	private ICryptoService cryptoService;
+	
+	@PostMapping("/login") 
+	public Map<String, String> login(@RequestBody LoginVo loginVo) { 
+		logger.info("LoginVo,LoginVo:{}",loginVo);
+		Map<String, String> map = new HashMap<String, String>();
+//		boolean bool = service.validateLogin(userId);
+//		if (!bool) {
+//			map.put("code", "402");
+//			map.put("message", "您没有权限登录！");
+//			map.put("userName", "");
+//			return map;
+//		}
+		String userId=loginVo.getUserId();
+		String password=loginVo.getPassword();	
+		logger.info("加密 userId:{},password:{}",userId,password);
+		if (userId != null && password != null) {
+			userId = cryptoService.getDecryptText(userId);
+			password = cryptoService.getDecryptText(password);
+			logger.info("解密 userId:{},password:{}",userId,password);
+			loginVo.setUserId(userId);
+			loginVo.setPassword(password);;
+			map = service.login(userId, password);
+			String code = map.get("code");
+			//账号密码验证通过 生成token，否则直接返回
+			if ("200".equals(code)) {
+				map =service.loginToken(loginVo, map); 
+				map.put("loginId", cryptoService.getEncryptText(userId));
+			} 
+			return map; 
+			
+		} else {
+			map.put("code", "402");
+			map.put("message", "用户名和密码不能为空！");
+			return map;
+		}
+			
+	}
+	
+	@PostMapping("/logoutToken") 
+	public Map<String, String> logoutToken(String userId) { 
+		return service.logoutToken(userId); 
+	} 	
+}

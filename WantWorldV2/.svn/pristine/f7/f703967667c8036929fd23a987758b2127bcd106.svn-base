@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.wantworld.dao.BaseDataDao">
+  <resultMap id="BaseResultMap" type="com.want.wantworld.entity.BaseData">
+    <id column="ATTRIBUTE_KEY" jdbcType="NUMERIC" property="attributeKey" />
+    <result column="ATTRIBUTE_VALUE" jdbcType="VARCHAR" property="attributeValue" />
+    <result column="ATTRIBUTE_ID" jdbcType="VARCHAR" property="attributeId" />
+    <result column="ATTRIBUTE_NAME" jdbcType="VARCHAR" property="attributeName" />
+    <result column="STATUS" jdbcType="VARCHAR" property="status" />
+    <result column="CREATOR" jdbcType="VARCHAR" property="creator" />
+    <result column="CREATE_DATE" jdbcType="TIMESTAMP" property="createDate" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    ATTRIBUTE_KEY, ATTRIBUTE_VALUE, ATTRIBUTE_ID, ATTRIBUTE_NAME, STATUS, CREATOR, CREATE_DATE
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from WANTWORLDV2.BASE_DATA
+    where ATTRIBUTE_KEY = #{attributeKey,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from WANTWORLDV2.BASE_DATA
+    where ATTRIBUTE_KEY = #{attributeKey,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.want.wantworld.entity.BaseData">
+    insert into WANTWORLDV2.BASE_DATA (ATTRIBUTE_KEY, ATTRIBUTE_VALUE, ATTRIBUTE_ID, 
+      ATTRIBUTE_NAME, STATUS, CREATOR, 
+      CREATE_DATE)
+    values (#{attributeKey,jdbcType=VARCHAR}, #{attributeValue,jdbcType=VARCHAR}, #{attributeId,jdbcType=VARCHAR}, 
+      #{attributeName,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{creator,jdbcType=VARCHAR}, 
+      #{createDate,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.want.wantworld.entity.BaseData">
+    insert into WANTWORLDV2.BASE_DATA
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="attributeKey != null">
+        ATTRIBUTE_KEY,
+      </if>
+      <if test="attributeValue != null">
+        ATTRIBUTE_VALUE,
+      </if>
+      <if test="attributeId != null">
+        ATTRIBUTE_ID,
+      </if>
+      <if test="attributeName != null">
+        ATTRIBUTE_NAME,
+      </if>
+      <if test="status != null">
+        STATUS,
+      </if>
+      <if test="creator != null">
+        CREATOR,
+      </if>
+      <if test="createDate != null">
+        CREATE_DATE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="attributeKey != null">
+        #{attributeKey,jdbcType=VARCHAR},
+      </if>
+      <if test="attributeValue != null">
+        #{attributeValue,jdbcType=VARCHAR},
+      </if>
+      <if test="attributeId != null">
+        #{attributeId,jdbcType=VARCHAR},
+      </if>
+      <if test="attributeName != null">
+        #{attributeName,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="creator != null">
+        #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.want.wantworld.entity.BaseData">
+    update WANTWORLDV2.BASE_DATA
+    <set>
+      <if test="attributeValue != null">
+        ATTRIBUTE_VALUE = #{attributeValue,jdbcType=VARCHAR},
+      </if>
+      <if test="attributeId != null">
+        ATTRIBUTE_ID = #{attributeId,jdbcType=VARCHAR},
+      </if>
+      <if test="attributeName != null">
+        ATTRIBUTE_NAME = #{attributeName,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        STATUS = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="creator != null">
+        CREATOR = #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        CREATE_DATE = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where ATTRIBUTE_KEY = #{attributeKey,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.want.wantworld.entity.BaseData">
+    update WANTWORLDV2.BASE_DATA
+    set ATTRIBUTE_VALUE = #{attributeValue,jdbcType=VARCHAR},
+      ATTRIBUTE_ID = #{attributeId,jdbcType=VARCHAR},
+      ATTRIBUTE_NAME = #{attributeName,jdbcType=VARCHAR},
+      STATUS = #{status,jdbcType=VARCHAR},
+      CREATOR = #{creator,jdbcType=VARCHAR},
+      CREATE_DATE = #{createDate,jdbcType=TIMESTAMP}
+    where ATTRIBUTE_KEY = #{attributeKey,jdbcType=VARCHAR}
+  </update>
+</mapper>

@@ -1,0 +1,215 @@
+package com.want.vo;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * 考勤信息接口bean
+ * @author 00320558
+ * 2019-10-28 16:20:00
+ */
+public class Attence implements Serializable{
+
+	private static final long serialVersionUID = -3207091826372245028L;
+	private String audMatter;      //类型
+	private String id;             //ID
+	private String audName;        //事项类型
+	private String leaveDate;      //请假日期
+	private String amAudName;      //上午请假类型
+	private String pmAudName;      //下午请假类型
+	private String bizDate;        //上报时间
+	private String reportCode;     //上报人编号
+	private String reportName;     //上报人姓名
+	private String channelID;      //上报人所属通路ID
+	private String channelCode;    //上报人所属通路代码
+	private String channelName;    //上报人所属通路名称
+	private String rolename;       //人员角色
+	private String address;        //地址
+	private String memo;           //备注
+	private String carNum;         //车牌号
+	private String carMile;        //里程（km）
+	private String audTime;        //审核时间
+	private String audResult;      //审核结果
+	private String audUserCode;    //审核人编号
+	private String audUserName;    //审核人姓名
+	private String audComment;     //审核批注
+	private String dataType;       //数据更新标记
+	private String createUser;     //创建人
+	private Date createDate;       //创建时间
+	private String updateUser;     //修改人
+	private Date updateDate;       //修改时
+	public String getAudMatter() {
+		return audMatter;
+	}
+	public void setAudMatter(String audMatter) {
+		this.audMatter = audMatter;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public String getAudName() {
+		return audName;
+	}
+	public void setAudName(String audName) {
+		this.audName = audName;
+	}
+	public String getLeaveDate() {
+		return leaveDate;
+	}
+	public void setLeaveDate(String leaveDate) {
+		this.leaveDate = leaveDate;
+	}
+	public String getAmAudName() {
+		return amAudName;
+	}
+	public void setAmAudName(String amAudName) {
+		this.amAudName = amAudName;
+	}
+	public String getPmAudName() {
+		return pmAudName;
+	}
+	public void setPmAudName(String pmAudName) {
+		this.pmAudName = pmAudName;
+	}
+	public String getBizDate() {
+		return bizDate;
+	}
+	public void setBizDate(String bizDate) {
+		this.bizDate = bizDate;
+	}
+	public String getReportCode() {
+		return reportCode;
+	}
+	public void setReportCode(String reportCode) {
+		this.reportCode = reportCode;
+	}
+	public String getReportName() {
+		return reportName;
+	}
+	public void setReportName(String reportName) {
+		this.reportName = reportName;
+	}
+	public String getChannelID() {
+		return channelID;
+	}
+	public void setChannelID(String channelID) {
+		this.channelID = channelID;
+	}
+	public String getChannelCode() {
+		return channelCode;
+	}
+	public void setChannelCode(String channelCode) {
+		this.channelCode = channelCode;
+	}
+	public String getChannelName() {
+		return channelName;
+	}
+	public void setChannelName(String channelName) {
+		this.channelName = channelName;
+	}
+	public String getRolename() {
+		return rolename;
+	}
+	public void setRolename(String rolename) {
+		this.rolename = rolename;
+	}
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
+	}
+	public String getMemo() {
+		return memo;
+	}
+	public void setMemo(String memo) {
+		this.memo = memo;
+	}
+	public String getCarNum() {
+		return carNum;
+	}
+	public void setCarNum(String carNum) {
+		this.carNum = carNum;
+	}
+	public String getCarMile() {
+		return carMile;
+	}
+	public void setCarMile(String carMile) {
+		this.carMile = carMile;
+	}
+	public String getAudTime() {
+		return audTime;
+	}
+	public void setAudTime(String audTime) {
+		this.audTime = audTime;
+	}
+	public String getAudResult() {
+		return audResult;
+	}
+	public void setAudResult(String audResult) {
+		this.audResult = audResult;
+	}
+	public String getAudUserCode() {
+		return audUserCode;
+	}
+	public void setAudUserCode(String audUserCode) {
+		this.audUserCode = audUserCode;
+	}
+	public String getAudUserName() {
+		return audUserName;
+	}
+	public void setAudUserName(String audUserName) {
+		this.audUserName = audUserName;
+	}
+	public String getAudComment() {
+		return audComment;
+	}
+	public void setAudComment(String audComment) {
+		this.audComment = audComment;
+	}
+	public String getDataType() {
+		return dataType;
+	}
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
+	public String getCreateUser() {
+		return createUser;
+	}
+	public void setCreateUser(String createUser) {
+		this.createUser = createUser;
+	}
+	public Date getCreateDate() {
+		return createDate;
+	}
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+	public String getUpdateUser() {
+		return updateUser;
+	}
+	public void setUpdateUser(String updateUser) {
+		this.updateUser = updateUser;
+	}
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
+	}
+	@Override
+	public String toString() {
+		return "Attence [audMatter=" + audMatter + ", id=" + id + ", audName=" + audName + ", leaveDate=" + leaveDate
+				+ ", amAudName=" + amAudName + ", pmAudName=" + pmAudName + ", bizDate=" + bizDate + ", reportCode="
+				+ reportCode + ", reportName=" + reportName + ", channelID=" + channelID + ", channelCode="
+				+ channelCode + ", channelName=" + channelName + ", rolename=" + rolename + ", address=" + address
+				+ ", memo=" + memo + ", carNum=" + carNum + ", carMile=" + carMile + ", audTime=" + audTime
+				+ ", audResult=" + audResult + ", audUserCode=" + audUserCode + ", audUserName=" + audUserName
+				+ ", audComment=" + audComment + ", dataType=" + dataType + ", createUser=" + createUser
+				+ ", createDate=" + createDate + ", updateUser=" + updateUser + ", updateDate=" + updateDate + "]";
+	}
+
+}

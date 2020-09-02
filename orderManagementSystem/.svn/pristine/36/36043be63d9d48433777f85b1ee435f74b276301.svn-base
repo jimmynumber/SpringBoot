@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper.AttenceMapper">
+
+     <!-- 检查是否存在同一笔考勤信息 --> 
+	 <select id="checkAttenceExist" parameterType="java.lang.String" resultType="java.lang.Boolean">
+	    select decode(count(1),0,0,1)  from SALESGROUP2_RC.ATTENCE where ID = #{id ,jdbcType=VARCHAR}
+  	 </select>
+     <!-- 写入考勤资料  --> 
+     <insert id="insertAttence" parameterType="com.want.vo.Attence" >
+         insert into SALESGROUP2_RC.ATTENCE
+         <trim prefix=" (" suffix=" ) " suffixOverrides=" , ">
+        	<if test="audMatter != null and audMatter != '' " >      
+				AUDMATTER,
+			</if>
+			<if test="id != null and id != '' " >                    
+				ID,
+			</if>
+			<if test="audName != null and audName != '' " >          
+				AUDNAME,
+			</if>
+			<if test="leaveDate != null and leaveDate != '' " >      
+				LEAVEDATE,
+			</if>
+			<if test="amAudName != null and amAudName != '' " >      
+				AMAUDNAME,
+			</if>
+			<if test="pmAudName != null and pmAudName != '' " >      
+				PMAUDNAME,
+			</if>
+			<if test="bizDate != null and bizDate != '' " >          
+				BIZDATE,
+			</if>
+			<if test="reportCode != null and reportCode != '' " >    
+				REPORTCODE,
+			</if>
+			<if test="reportName != null and reportName != '' " >    
+				REPORTNAME,
+			</if>
+			<if test="channelID != null and channelID != '' " >      
+				CHANNELID,
+			</if>
+			<if test="channelCode != null and channelCode != '' " >  
+				CHANNELCODE,
+			</if>
+			<if test="channelName != null and channelName != '' " >  
+				CHANNELNAME,
+			</if>
+			<if test="rolename != null and rolename != '' " >        
+				ROLENAME,
+			</if>
+			<if test="address != null and address != '' " >          
+				ADDRESS,
+			</if>
+			<if test="memo != null and memo != '' " >                
+				MEMO,
+			</if>
+			<if test="carNum != null and carNum != '' " >            
+				CARNUM,
+			</if>
+			<if test="carMile != null and carMile != '' " >          
+				CARMILE,
+			</if>
+			<if test="audTime != null and audTime != '' " >          
+				AUDTIME,
+			</if>
+			<if test="audResult != null and audResult != '' " >      
+				AUDRESULT,
+			</if>
+			<if test="audUserCode != null and audUserCode != '' " >  
+				AUDUSERCODE,
+			</if>
+			<if test="audUserName != null and audUserName != '' " >  
+				AUDUSERNAME,
+			</if>
+			<if test="audComment != null and audComment != '' " >    
+				AUDCOMMENT,
+			</if>
+			<if test="dataType != null and dataType != '' " >        
+				DATATYPE,
+			</if>
+			<if test=" createUser != null and createUser != '' " > 
+				CREATE_USER,
+			</if>
+				CREATE_DATE,
+			<if test=" updateUser != null and updateUser != '' " > 
+				UPDATE_USER,
+			</if>
+			<if test=" updateDate != null   " >
+			 	UPDATE_DATE,
+			</if>
+		</trim>
+		<trim prefix=" values ( " suffix=" ) " suffixOverrides=" , ">
+			<if test="audMatter != null and audMatter != '' " >      
+			    #{audMatter ,jdbcType=VARCHAR},
+			</if>
+			<if test="id != null and id != '' " >                    
+			    #{id ,jdbcType=VARCHAR},
+			</if>
+			<if test="audName != null and audName != '' " >          
+			    #{audName ,jdbcType=VARCHAR},
+			</if>
+			<if test="leaveDate != null and leaveDate != '' " >      
+			    to_date( #{leaveDate,jdbcType=VARCHAR},'yyyy-mm-dd'),
+			</if>
+			<if test="amAudName != null and amAudName != '' " >      
+			    #{amAudName ,jdbcType=VARCHAR},
+			</if>
+			<if test="pmAudName != null and pmAudName != '' " >      
+			    #{pmAudName ,jdbcType=VARCHAR},
+			</if>
+			<if test="bizDate != null and bizDate != '' " >          
+			    to_date( #{bizDate,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss'),
+			</if>
+			<if test="reportCode != null and reportCode != '' " >    
+			    #{reportCode ,jdbcType=VARCHAR},
+			</if>
+			<if test="reportName != null and reportName != '' " >    
+			    #{reportName ,jdbcType=VARCHAR},
+			</if>
+			<if test="channelID != null and channelID != '' " >      
+			    #{channelID ,jdbcType=VARCHAR},
+			</if>
+			<if test="channelCode != null and channelCode != '' " >  
+			    #{channelCode ,jdbcType=VARCHAR},
+			</if>
+			<if test="channelName != null and channelName != '' " >  
+			    #{channelName ,jdbcType=VARCHAR},
+			</if>
+			<if test="rolename != null and rolename != '' " >        
+			    #{rolename ,jdbcType=VARCHAR},
+			</if>
+			<if test="address != null and address != '' " >          
+			    #{address ,jdbcType=VARCHAR},
+			</if>
+			<if test="memo != null and memo != '' " >                
+			    #{memo ,jdbcType=VARCHAR},
+			</if>
+			<if test="carNum != null and carNum != '' " >            
+			    #{carNum ,jdbcType=VARCHAR},
+			</if>
+			<if test="carMile != null and carMile != '' " >          
+			    #{carMile ,jdbcType=VARCHAR},
+			</if>
+			<if test="audTime != null and audTime != '' " >          
+			    to_date( #{audTime,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss'),
+			</if>
+			<if test="audResult != null and audResult != '' " >      
+			    #{audResult ,jdbcType=VARCHAR},
+			</if>
+			<if test="audUserCode != null and audUserCode != '' " >  
+			    #{audUserCode ,jdbcType=VARCHAR},
+			</if>
+			<if test="audUserName != null and audUserName != '' " >  
+			    #{audUserName ,jdbcType=VARCHAR},
+			</if>
+			<if test="audComment != null and audComment != '' " >    
+			    #{audComment ,jdbcType=VARCHAR},
+			</if>
+			<if test="dataType != null and dataType != '' " >        
+			    #{dataType ,jdbcType=VARCHAR},
+			</if>
+			<if test=" createUser != null and createUser != '' " >  
+			    #{createUser ,jdbcType=VARCHAR},
+			</if>
+			    sysdate,
+			<if test=" updateUser != null and updateUser != '' " >  
+			    #{updateUser ,jdbcType=VARCHAR},
+			</if>
+			<if test=" updateDate != null  " > 
+			    #{updateDate,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+     </insert>
+     <!-- 修改考勤资料  --> 
+     <update id="updateAttence" parameterType="com.want.vo.Attence">
+     	update SALESGROUP2_RC.ATTENCE
+     	<set>
+			<if test="audMatter != null and audMatter != '' " >      
+				AUDMATTER = #{audMatter ,jdbcType=VARCHAR},
+			</if>
+			<if test="audName != null and audName != '' " >          
+				AUDNAME = #{audName ,jdbcType=VARCHAR},
+			</if>
+			<if test="leaveDate != null and leaveDate != '' " >      
+				LEAVEDATE = to_date( #{leaveDate,jdbcType=VARCHAR},'yyyy-mm-dd'),
+			</if>
+			<if test="amAudName != null and amAudName != '' " >      
+				AMAUDNAME = #{amAudName ,jdbcType=VARCHAR},
+			</if>
+			<if test="pmAudName != null and pmAudName != '' " >      
+				PMAUDNAME = #{pmAudName ,jdbcType=VARCHAR},
+			</if>
+			<if test="bizDate != null and bizDate != '' " >          
+				BIZDATE = to_date( #{bizDate,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss'),
+			</if>
+			<if test="reportCode != null and reportCode != '' " >    
+				REPORTCODE = #{reportCode ,jdbcType=VARCHAR},
+			</if>
+			<if test="reportName != null and reportName != '' " >    
+				REPORTNAME = #{reportName ,jdbcType=VARCHAR},
+			</if>
+			<if test="channelID != null and channelID != '' " >      
+				CHANNELID = #{channelID ,jdbcType=VARCHAR},
+			</if>
+			<if test="channelCode != null and channelCode != '' " >  
+				CHANNELCODE = #{channelCode ,jdbcType=VARCHAR},
+			</if>
+			<if test="channelName != null and channelName != '' " >  
+				CHANNELNAME = #{channelName ,jdbcType=VARCHAR},
+			</if>
+			<if test="rolename != null and rolename != '' " >        
+				ROLENAME = #{rolename ,jdbcType=VARCHAR},
+			</if>
+			<if test="address != null and address != '' " >          
+				ADDRESS = #{address ,jdbcType=VARCHAR},
+			</if>
+			<if test="memo != null and memo != '' " >                
+				MEMO = #{memo ,jdbcType=VARCHAR},
+			</if>
+			<if test="carNum != null and carNum != '' " >            
+				CARNUM = #{carNum ,jdbcType=VARCHAR},
+			</if>
+			<if test="carMile != null and carMile != '' " >          
+				CARMILE = #{carMile ,jdbcType=VARCHAR},
+			</if>
+			<if test="audTime != null and audTime != '' " >          
+				AUDTIME = to_date( #{audTime,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss') ,
+			</if>
+			<if test="audResult != null and audResult != '' " >      
+				AUDRESULT = #{audResult ,jdbcType=VARCHAR},
+			</if>
+			<if test="audUserCode != null and audUserCode != '' " >  
+				AUDUSERCODE = #{audUserCode ,jdbcType=VARCHAR},
+			</if>
+			<if test="audUserName != null and audUserName != '' " >  
+				AUDUSERNAME = #{audUserName ,jdbcType=VARCHAR},
+			</if>
+			<if test="audComment != null and audComment != '' " >    
+				AUDCOMMENT = #{audComment ,jdbcType=VARCHAR},
+			</if>
+			<if test="dataType != null and dataType != '' " >        
+				DATATYPE = #{dataType ,jdbcType=VARCHAR},
+			</if>
+			<if test=" createUser != null and createUser != '' " >  CREATE_USER =#{createUser ,jdbcType=VARCHAR},</if>
+			<if test=" updateUser != null and updateUser != '' " >  UPDATE_USER = #{updateUser ,jdbcType=VARCHAR},</if>
+			    UPDATE_DATE =  sysdate
+     	</set>
+     	where ID = #{id ,jdbcType=VARCHAR}
+     </update>
+       
+     <!--  --> 
+</mapper> 

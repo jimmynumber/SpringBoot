@@ -1,0 +1,250 @@
+package com.want.util;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.want.dto.ErpOrderDetailDto;
+import com.want.dto.ErpOrderDto;
+import com.want.webservice.ZRFCSD026.DTREQZRFCSD026;
+import com.want.webservice.ZRFCSD026.DTREQZRFCSD026.ITVBAK;
+import com.want.webservice.ZRFCSD026.DTREQZRFCSD026.ITVBAP;
+import com.want.webservice.ZRFCSD026.DTRESZRFCSD026;
+import com.want.webservice.ZRFCSD026.DTRESZRFCSD026.OTVBAK;
+import com.want.webservice.ZRFCSD026.DTRESZRFCSD026.OTVBAP;
+import com.want.webservice.ZRFCSD026.SIOZRFCSD026Service;
+
+/**
+ * @description 调用接口service
+ * @author 00320558 
+ * @serialData 2019-09-18
+ * @version V1.0.0
+ */
+public class WebServiceUtil {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebServiceUtil.class);
+	public static String getObjectValue(Object value) {
+		return value != null && !"".equals(value) ? value.toString() : "";
+	}
+	
+	/**
+	 *  字符型日期 转 XMLGregorianCalendar
+	 */
+	public static XMLGregorianCalendar stringToGregorian(String dateStr) {
+		if (dateStr ==null || dateStr.trim().length()<=0 ) {
+			return null;
+		}
+		XMLGregorianCalendar gc = null; 
+		try {
+			Date date = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+			GregorianCalendar cal = new GregorianCalendar();  
+	        cal.setTime(date);  
+	        gc = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal); 
+		} catch ( Exception e) {
+			e.printStackTrace();
+			return null;
+		}		
+		return gc;
+		
+	}
+	/**
+	 * @author 00320558
+	 * @serialData 2019-09-18
+	 * @description 抛转ERP订单接口 
+	 */
+	public static Map<String, Object> sendZRFCSD026(ErpOrderDto erpOrderDto,List<ErpOrderDetailDto> erpOrderDetailList){
+		DTREQZRFCSD026 req=new DTREQZRFCSD026();
+		// 传入订单信息
+		ITVBAK erpOrder=new ITVBAK();
+		erpOrder.setBSTNK(getObjectValue(erpOrderDto.getSid()));                           //客户采购订单编号
+		erpOrder.setVKORG(getObjectValue(erpOrderDto.getSaleCompnayId()));                 //销售组织
+		erpOrder.setVTWEG(getObjectValue(erpOrderDto.getDistributionChannelId()));         //分销渠道
+		erpOrder.setSPART(getObjectValue(erpOrderDto.getProductGroupId()));                //产品组
+		erpOrder.setKUNNR(getObjectValue(erpOrderDto.getSapBuyerId()));                    //客户编号
+		erpOrder.setKUNNR1(getObjectValue(erpOrderDto.getSapReceiverId()));                //送达方
+		erpOrder.setPRSDT(stringToGregorian(getObjectValue(erpOrderDto.getOpenOrderDate())));  //开单日期 
+		erpOrder.setBSTDK(stringToGregorian(getObjectValue(erpOrderDto.getOrderTime())));  //订单日期
+		erpOrder.setMEMO(getObjectValue(erpOrderDto.getMemo()));                           //订单备注
+		String auart=erpOrderDto.getAuart();
+		auart="ZORF";   //暂时固定值为"ZORF" 后期若有 样赠订单类型:ZFD 注释即可
+		if ( auart != null && "ZORF".equals(auart) ) {
+			erpOrder.setAUART(auart);  //订单类型 "标准订单类型:ZORF,样赠订单类型:ZFD."
+			erpOrder.setAUGRU("");     //订单原因 "如果订单类型为ZFD,不可为空"	   		
+			erpOrder.setKOSTL("");     //成本中心 "如果订单类型为ZFD,不可为空"
+		}else {
+			erpOrder.setAUART(getObjectValue(erpOrderDto.getAuart()));  //订单类型 "标准订单类型:ZORF,样赠订单类型:ZFD."
+			erpOrder.setAUGRU(getObjectValue(erpOrderDto.getAugru()));  //订单原因 "如果订单类型为ZFD,不可为空"	   		
+			erpOrder.setKOSTL(getObjectValue(erpOrderDto.getKostl()));  //成本中心 "如果订单类型为ZFD,不可为空"
+		}
+		// 日志输出 相关抛转信息
+		StringBuilder sb=new StringBuilder(" \r\n ");
+		sb.append("erpOrder:BSTNK 客户采购订单编号 "+ erpOrder.getBSTNK()).append(" \r\n ");
+		sb.append("erpOrder:VKORG 销售组织 "+ erpOrder.getVKORG()).append(" \r\n ");
+		sb.append("erpOrder:VTWEG 分销渠道 "+ erpOrder.getVTWEG()).append(" \r\n ");
+		sb.append("erpOrder:SPART 产品组 "+ erpOrder.getSPART()).append(" \r\n ");
+		sb.append("erpOrder:KUNNR 客户编号 "+ erpOrder.getKUNNR()).append(" \r\n ");
+		sb.append("erpOrder:KUNNR1 送达方 "+ erpOrder.getKUNNR1()).append(" \r\n ");
+		sb.append("erpOrder:PRSDT 开单日期 "+ erpOrder.getPRSDT()).append(" \r\n ");
+		sb.append("erpOrder:BSTDK 订单日期 "+ erpOrder.getBSTDK()).append(" \r\n ");
+		sb.append("erpOrder:MEMO  订单备注 "+ erpOrder.getMEMO()).append(" \r\n ") ;
+		sb.append("erpOrder:auart 订单类型 "+ erpOrder.getAUART()).append(" \r\n ") ;
+		sb.append("erpOrder:augru 订单原因 "+ erpOrder.getAUGRU()).append(" \r\n ") ;
+		sb.append("erpOrder:kostl 成本中心 "+ erpOrder.getKOSTL()).append(" \r\n ") ;
+		sb.append("-----------------"+"\r\n");
+		req.getITVBAK().add(erpOrder);
+        // 传入订单明细 
+		if( null != erpOrderDetailList && erpOrderDetailList.size()>0 ) {
+        	for (ErpOrderDetailDto item : erpOrderDetailList) {
+        		ITVBAP erpOrderDeatail = new ITVBAP();
+        		erpOrderDeatail.setBSTNK(getObjectValue(erpOrderDto.getSid()));          //客户采购订单编号
+        		erpOrderDeatail.setPOSNR1(getObjectValue(item.getLineNumber()));         //采购订单的行项目号
+        		erpOrderDeatail.setMATNR(getObjectValue(item.getProductId()));           //物料号
+        		erpOrderDeatail.setLGORT(getObjectValue(item.getStockAddresId()));       //库存地点
+        		erpOrderDeatail.setPRICE(getObjectValue(item.getRebateDiscountPrice()));       //开单单价
+        		erpOrderDeatail.setUNIT(getObjectValue(item.getUnit()));                 //数量的单位
+        		erpOrderDeatail.setKWMENG(getObjectValue(item.getCount()));              //开单数量
+        		erpOrderDeatail.setCMPRE(getObjectValue(item.getSumAmount()));           //开单金额
+        		erpOrderDeatail.setMEMO(getObjectValue(item.getItemMemo()));             //行备注信息
+        		erpOrderDeatail.setPSTYV(getObjectValue(item.getOrderLineType()));         //订单行项目类型
+        		erpOrderDeatail.setTMPID(getObjectValue(item.getPromoteId()));             //促销案编号
+        		erpOrderDeatail.setTMPTEXT(getObjectValue(item.getPromotePolicyDesc()));   //促销案说明
+        		sb.append("erpOrderDeatail:BSTNK 客户采购订单编号 "+ erpOrderDeatail.getBSTNK()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:POSNR1 采购订单的行项目号 "+ erpOrderDeatail.getPOSNR1()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:MATNR 物料号 "+ erpOrderDeatail.getMATNR()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:LGORT 库存地点 "+ erpOrderDeatail.getLGORT()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:PRICE 开单单价 "+ erpOrderDeatail.getPRICE()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:UNIT 数量的单位 "+ erpOrderDeatail.getUNIT()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:KWMENG 开单数量 "+ erpOrderDeatail.getKWMENG()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:CMPRE 开单金额 "+ erpOrderDeatail.getCMPRE()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:MEMO 行备注信息 "+ erpOrderDeatail.getMEMO()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:PSTYV 订单行项目类型 "+ erpOrderDeatail.getPSTYV()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:TMPID 促销案编号 "+ erpOrderDeatail.getTMPID()).append(" \r\n ");
+        		sb.append("erpOrderDeatail:TMPTEXT 促销案说明 "+ erpOrderDeatail.getTMPTEXT()).append(" \r\n ");
+        		sb.append("-----------------"+"\r\n");
+        		req.getITVBAP().add(erpOrderDeatail);
+			}
+        }
+		Map<String, Object> map = new HashMap<String, Object>();
+		SIOZRFCSD026Service service=new SIOZRFCSD026Service();
+		DTRESZRFCSD026 res=service.getHTTPPort().siOZRFCSD026(req);
+		List<DTRESZRFCSD026 .OTVBAK> otvbak=res.getOTVBAK();
+		if(null != otvbak && otvbak.size()>0 ) {
+			OTVBAK otvbak2=otvbak.get(0);
+				/*
+				 * BSTNK    orderCode    客户采购订单编号 
+				 * TEXT200  desciption   SAP返回 
+				 * VBELN    erpOrderCode 销售订单号
+				 *          orderStatus  成功:"S",失败:"E"
+				 */
+			    Map<String, String> otvbakMap=new HashMap<String, String>();
+			    sb.append("客户采购订单编号:"+otvbak2.getBSTNK()).append(" \r\n ");
+			    sb.append("SAP返回:"+otvbak2.getTEXT200()).append(" \r\n ");
+			    sb.append("销售订单号:"+otvbak2.getVBELN()).append(" \r\n ");
+			    sb.append("-----------------"+"\r\n");
+				otvbakMap.put("sid", otvbak2.getBSTNK());
+				otvbakMap.put("desciption", otvbak2.getTEXT200()+" ");
+				otvbakMap.put("erpOrderCode", otvbak2.getVBELN().replaceAll("^(0+)", ""));
+				String erpOrderCode=otvbak2.getVBELN();
+				String orderStatus=( erpOrderCode != null && erpOrderCode.trim().length()>0 )?"S":"E";
+				otvbakMap.put("orderStatus", orderStatus);
+				map.put("otvbakMap", otvbakMap);
+		}
+		List<Map<String, String>> otvbaps =new ArrayList<Map<String, String>>();
+		List<DTRESZRFCSD026 .OTVBAP> otvbap=res.getOTVBAP();
+		if(null != otvbap && otvbap.size()>0 ) {
+			for (OTVBAP otvbap2 : otvbap) {
+				Map<String, String> otvbapMap=new HashMap<String, String>();
+				/*
+				 * BSTNK   orderCode    客户采购订单编号 
+				 * POSNR1  sid          采购订单的行项目号 
+				 * POSNR   erpOrderLine 销售订单的行项目号
+				 * TEXT200 desciption   SAP返回
+				 */
+				sb.append("客户采购订单编号:"+otvbap2.getBSTNK()).append(" \r\n ");
+				sb.append("采购订单的行项目号:"+otvbap2.getPOSNR1()).append(" \r\n ");
+				sb.append("销售订单的行项目号:"+otvbap2.getPOSNR()).append(" \r\n ");
+				sb.append("SAP返回:"+otvbap2.getTEXT200()).append(" \r\n ");
+				sb.append("-----------------"+"\r\n");
+				otvbapMap.put("orderCode", otvbap2.getBSTNK());
+				otvbapMap.put("sid", otvbap2.getPOSNR1().replaceAll("^(0+)", ""));
+				otvbapMap.put("erpOrderLine", otvbap2.getPOSNR().replaceAll("^(0+)", ""));
+				otvbapMap.put("desciption", otvbap2.getTEXT200()+" ");
+				otvbaps.add(otvbapMap);
+			}
+		}
+		LOGGER.info(sb.toString());
+	    map.put("otvbapMap", otvbaps);
+	    return map;
+	}
+
+	public static void main(String[] args) throws Exception {
+		test();
+	}
+	
+	public static void  test() {
+		/**
+		 BSTNK                   VKORG   VTWEG   SPART   KUNNR       KUNNR1      PRSDT       MEMO                                        　
+		 21000001201909100000    C821    CM       F8    11037469    11037469    2019.09.19   TEST111 　
+		 */
+		ErpOrderDto erpOrderDto=new ErpOrderDto();
+		erpOrderDto.setSid("21000001201909100002"); //客户采购订单编号
+		erpOrderDto.setSaleCompnayId("C821");             //销售组织
+		erpOrderDto.setDistributionChannelId("CM");       //分销渠道
+		erpOrderDto.setProductGroupId("F8");              //产品组
+		erpOrderDto.setSapBuyerId("11037469");            //客户编号
+		erpOrderDto.setSapReceiverId("11037469");         //送达方
+		erpOrderDto.setOrderTime("2019-09-19");           //单日期
+		erpOrderDto.setMemo("需求订单数据");              //订单备注
+		erpOrderDto.setOpenOrderDate("2050-10-04");       //开单日期 
+		erpOrderDto.setAuart("ZFD");       //订单类型 "标准订单类型:ZORF,样赠订单类型:ZFD."
+		erpOrderDto.setAugru("订单原因");  //订单原因 "如果订单类型为ZFD,不可为空"	   		
+		erpOrderDto.setKostl("成本中心");  //成本中心 "如果订单类型为ZFD,不可为空"
+		/**
+		BSTNK                 POSNR1 MATNR        LGORT PRICE  UNIT KWMENG CMPRE   MEMO                               
+		21000001201909100000  1      306106167802 1001  15     CAR  10     150     T
+		21000001201909100000  2      306107010100 1001  12     CAR  11     120     T    
+		 */
+		
+		List<ErpOrderDetailDto> erpOrderDetailList =new ArrayList<ErpOrderDetailDto>();
+		ErpOrderDetailDto erpOrderDetailDto=new ErpOrderDetailDto();
+		erpOrderDetailDto.setLineNumber("1");               //采购订单的行项目号
+		erpOrderDetailDto.setProductId("306106167802");     //物料号
+		erpOrderDetailDto.setStockAddresId("1001");         //库存地点
+		erpOrderDetailDto.setDiscountPrice("15");               //开单单价
+		erpOrderDetailDto.setUnit("CAR");                   //数量的单位
+		erpOrderDetailDto.setCount("10");                   //开单数量
+		erpOrderDetailDto.setSumAmount("150");              //开单金额
+		erpOrderDetailDto.setItemMemo("第一笔明细");        //行备注信息
+		erpOrderDetailDto.setOrderLineType("111-1");         //订单行项目类型
+		erpOrderDetailDto.setPromoteId("111-2");             //促销案编号
+		erpOrderDetailDto.setPromotePolicyDesc("111-3");     //促销案说明
+		erpOrderDetailList.add(erpOrderDetailDto);
+		
+		erpOrderDetailDto=new ErpOrderDetailDto();
+		erpOrderDetailDto.setLineNumber("2");               //采购订单的行项目号
+		erpOrderDetailDto.setProductId("306107010100");     //物料号
+		erpOrderDetailDto.setStockAddresId("1001");         //库存地点
+		erpOrderDetailDto.setDiscountPrice("12");               //开单单价
+		erpOrderDetailDto.setUnit("CAR");                   //数量的单位
+		erpOrderDetailDto.setCount("11");                   //开单数量
+		erpOrderDetailDto.setSumAmount("120");              //开单金额
+		erpOrderDetailDto.setItemMemo("第二笔明细");        //行备注信息
+		erpOrderDetailDto.setOrderLineType("222-1");         //订单行项目类型
+		erpOrderDetailDto.setPromoteId("222-2");             //促销案编号
+		erpOrderDetailDto.setPromotePolicyDesc("222-3");     //促销案说明
+		erpOrderDetailList.add(erpOrderDetailDto);
+		
+		sendZRFCSD026(erpOrderDto, erpOrderDetailList);
+	}	
+	
+	
+}

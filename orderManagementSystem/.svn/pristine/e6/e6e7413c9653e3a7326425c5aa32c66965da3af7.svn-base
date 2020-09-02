@@ -1,0 +1,144 @@
+package com.want.dto;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+/**
+ * SOCS需求订单信息 
+ * @author 00320558 
+ * @date   2019年09月16日
+ */
+public class OrderDto implements Serializable {
+	private static final long serialVersionUID = 4710614649320739240L;
+	private String  orderCode;       //SOCS订单编号
+	private String  orderTime;       //订单日期
+	private String  abbreviation;	  //客户名称
+	private String  sapBuyerCode;	  //客户SAP系统编号
+	private String  factoryName;     //发货分公司
+	private String  factory;	      //分公司编码
+	private String  contact;         //收获人
+	private String  contactPhone;	  //联系电话
+	private String  address;	      //收获地址
+	private String  ordertype;       // 订单类型
+	private String  orderStatus;     // 订单状态
+	private String  memo;	          //订单备注
+	private String  totalAmount;     //总金额  
+	private String  cancelReason;    //取消原因  
+	
+	private List<OrderDetailDto> needOrederInfoDetailDtoList; // 一对多   需求订单信息 详情
+	
+	public OrderDto() {
+		this.needOrederInfoDetailDtoList = new ArrayList<OrderDetailDto>();
+	}
+
+	public String getOrderCode() {
+		return orderCode;
+	}
+
+	public void setOrderCode(String orderCode) {
+		this.orderCode = orderCode;
+	}
+
+	public String getOrderTime() {
+		return orderTime;
+	}
+
+	public void setOrderTime(String orderTime) {
+		this.orderTime = orderTime;
+	}
+
+	public String getAbbreviation() {
+		return abbreviation;
+	}
+	public void setAbbreviation(String abbreviation) {
+		this.abbreviation = abbreviation;
+	}
+	public String getSapBuyerCode() {
+		return sapBuyerCode;
+	}
+	public void setSapBuyerCode(String sapBuyerCode) {
+		this.sapBuyerCode = sapBuyerCode;
+	}
+	public String getFactory() {
+		return factory;
+	}
+	public void setFactory(String factory) {
+		this.factory = factory;
+	}
+	public String getContact() {
+		return contact;
+	}
+	public void setContact(String contact) {
+		this.contact = contact;
+	}
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
+	}
+	
+	public String getOrdertype() {
+		return ordertype;
+	}
+
+	public void setOrdertype(String ordertype) {
+		this.ordertype = ordertype;
+	}
+
+	public String getOrderStatus() {
+		return orderStatus;
+	}
+
+	public void setOrderStatus(String orderStatus) {
+		this.orderStatus = orderStatus;
+	}
+
+	public String getMemo() {
+		return memo;
+	}
+	public void setMemo(String memo) {
+		this.memo = memo;
+	}
+	public List<OrderDetailDto> getNeedOrederInfoDetailDtoList() {
+		return needOrederInfoDetailDtoList;
+	}
+	public void setNeedOrederInfoDetailDtoList(List<OrderDetailDto> needOrederInfoDetailDtoList) {
+		this.needOrederInfoDetailDtoList = needOrederInfoDetailDtoList;
+	}
+	public String getFactoryName() {
+		return factoryName;
+	}
+	public void setFactoryName(String factoryName) {
+		this.factoryName = factoryName;
+	}
+	public String getContactPhone() {
+		return contactPhone;
+	}
+	public void setContactPhone(String contactPhone) {
+		this.contactPhone = contactPhone;
+	}
+	
+	public String getTotalAmount() {
+		return totalAmount;
+	}
+	public void setTotalAmount(String totalAmount) {
+		this.totalAmount = totalAmount;
+	}
+	public String getCancelReason() {
+		return cancelReason;
+	}
+	public void setCancelReason(String cancelReason) {
+		this.cancelReason = cancelReason;
+	}
+	@Override
+	public String toString() {
+		return "OrderDto [orderCode=" + orderCode + ", orderTime=" + orderTime + ", abbreviation=" + abbreviation
+				+ ", sapBuyerCode=" + sapBuyerCode + ", factoryName=" + factoryName + ", factory=" + factory
+				+ ", contact=" + contact + ", contactPhone=" + contactPhone + ", address=" + address + ", ordertype="
+				+ ordertype + ", orderStatus=" + orderStatus + ", memo=" + memo + ", totalAmount=" + totalAmount
+				+ ", cancelReason=" + cancelReason + ", needOrederInfoDetailDtoList=" + needOrederInfoDetailDtoList
+				+ "]";
+	}
+	
+}

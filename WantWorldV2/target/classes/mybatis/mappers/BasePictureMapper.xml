@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.wantworld.dao.BasePictureMapper">
+  <resultMap id="BaseResultMap" type="com.want.wantworld.entity.BasePicture">
+    <id column="SID" jdbcType="VARCHAR" property="sid" />
+    <result column="PIC_TYPE" jdbcType="CHAR" property="picType" />
+    <result column="PIC_URL" jdbcType="VARCHAR" property="picUrl" />
+    <result column="PIC_DESCRIPTION" jdbcType="VARCHAR" property="picDescription" />
+    <result column="CREATOR" jdbcType="VARCHAR" property="creator" />
+    <result column="CREATE_DATE" jdbcType="TIMESTAMP" property="createDate" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    SID, PIC_TYPE, PIC_URL, PIC_DESCRIPTION, CREATOR, CREATE_DATE
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from WANTWORLDV2.BASE_PICTURE
+    where SID = #{sid,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from WANTWORLDV2.BASE_PICTURE
+    where SID = #{sid,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.want.wantworld.entity.BasePicture">
+    insert into WANTWORLDV2.BASE_PICTURE (SID, PIC_TYPE, PIC_URL, 
+      PIC_DESCRIPTION, CREATOR, CREATE_DATE
+      )
+    values (#{sid,jdbcType=VARCHAR}, #{picType,jdbcType=CHAR}, #{picUrl,jdbcType=VARCHAR}, 
+      #{picDescription,jdbcType=VARCHAR}, #{creator,jdbcType=VARCHAR}, #{createDate,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.want.wantworld.entity.BasePicture">
+    insert into WANTWORLDV2.BASE_PICTURE
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="sid != null">
+        SID,
+      </if>
+      <if test="picType != null">
+        PIC_TYPE,
+      </if>
+      <if test="picUrl != null">
+        PIC_URL,
+      </if>
+      <if test="picDescription != null">
+        PIC_DESCRIPTION,
+      </if>
+      <if test="creator != null">
+        CREATOR,
+      </if>
+      <if test="createDate != null">
+        CREATE_DATE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="sid != null">
+        #{sid,jdbcType=VARCHAR},
+      </if>
+      <if test="picType != null">
+        #{picType,jdbcType=CHAR},
+      </if>
+      <if test="picUrl != null">
+        #{picUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="picDescription != null">
+        #{picDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="creator != null">
+        #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.want.wantworld.entity.BasePicture">
+    update WANTWORLDV2.BASE_PICTURE
+    <set>
+      <if test="picType != null">
+        PIC_TYPE = #{picType,jdbcType=CHAR},
+      </if>
+      <if test="picUrl != null">
+        PIC_URL = #{picUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="picDescription != null">
+        PIC_DESCRIPTION = #{picDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="creator != null">
+        CREATOR = #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        CREATE_DATE = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where SID = #{sid,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.want.wantworld.entity.BasePicture">
+    update WANTWORLDV2.BASE_PICTURE
+    set PIC_TYPE = #{picType,jdbcType=CHAR},
+      PIC_URL = #{picUrl,jdbcType=VARCHAR},
+      PIC_DESCRIPTION = #{picDescription,jdbcType=VARCHAR},
+      CREATOR = #{creator,jdbcType=VARCHAR},
+      CREATE_DATE = #{createDate,jdbcType=TIMESTAMP}
+    where SID = #{sid,jdbcType=VARCHAR}
+  </update>
+  
+  <select id="getAllPicture" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from WANTWORLDV2.BASE_PICTURE
+  </select>
+    
+</mapper>

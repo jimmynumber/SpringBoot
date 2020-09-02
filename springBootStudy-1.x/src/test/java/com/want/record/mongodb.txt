@@ -1,0 +1,65 @@
+add pom.xml
+ 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+		
+add application.properties
+spring.data.mongodb.uri=mongodb://name:pass@localhost:27017/test 
+
+new User.java
+package com.didispace.domain;
+import org.springframework.data.annotation.Id;
+public class User {
+    @Id
+    private Long id;
+    private String username;
+    private Integer age;
+	...g/s
+}
+
+package com.didispace.domain;
+import org.springframework.data.mongodb.repository.MongoRepository;
+public interface UserRepository extends MongoRepository<User, Long> {
+    User findByUsername(String username);
+}
+ 
+package com.didispace;
+import com.didispace.domain.User;
+import com.didispace.domain.UserRepository;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(Application.class)
+public class ApplicationTests {
+	@Autowired
+	private UserRepository userRepository;
+	@Before
+	public void setUp() {
+		userRepository.deleteAll();
+	}
+	@Test
+	public void test() throws Exception {
+		// 创建三个User，并验证User总数
+		userRepository.save(new User(1L, "didi", 30));
+		userRepository.save(new User(2L, "mama", 40));
+		userRepository.save(new User(3L, "kaka", 50));
+		Assert.assertEquals(3, userRepository.findAll().size());
+
+		// 删除一个User，再验证User总数
+		User u = userRepository.findOne(1L);
+		userRepository.delete(u);
+		Assert.assertEquals(2, userRepository.findAll().size());
+
+		// 删除一个User，再验证User总数
+		u = userRepository.findByUsername("mama");
+		userRepository.delete(u);
+		Assert.assertEquals(1, userRepository.findAll().size());
+	}
+}
+ 

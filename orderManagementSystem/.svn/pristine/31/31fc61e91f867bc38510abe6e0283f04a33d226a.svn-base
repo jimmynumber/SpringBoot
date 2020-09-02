@@ -1,0 +1,55 @@
+package com.want.dto;
+import java.io.Serializable;
+import java.util.List;
+
+
+public class FunctionInfo implements Serializable{
+
+    private static final long serialVersionUID = 2120869894112984147L;
+
+    private String functionId;
+    private String functionName;
+    private String parentFunctionId;
+    private String functionLevel;
+    private String functionUrl;
+    private List<FunctionInfo> childFunction;
+    
+	public String getFunctionId() {
+		return functionId;
+	}
+	public void setFunctionId(String functionId) {
+		this.functionId = functionId;
+	}
+	public String getFunctionName() {
+		return functionName;
+	}
+	public void setFunctionName(String functionName) {
+		this.functionName = functionName;
+	}
+	public String getParentFunctionId() {
+		return parentFunctionId;
+	}
+	public void setParentFunctionId(String parentFunctionId) {
+		this.parentFunctionId = parentFunctionId;
+	}
+	public String getFunctionLevel() {
+		return functionLevel;
+	}
+	public void setFunctionLevel(String functionLevel) {
+		this.functionLevel = functionLevel;
+	}
+	public String getFunctionUrl() {
+		return functionUrl;
+	}
+	public void setFunctionUrl(String functionUrl) {
+		this.functionUrl = functionUrl;
+	}
+	public List<FunctionInfo> getChildFunction() {
+		return childFunction;
+	}
+	public void setChildFunction(List<FunctionInfo> childFunction) {
+		this.childFunction = childFunction;
+	}
+	
+    
+}

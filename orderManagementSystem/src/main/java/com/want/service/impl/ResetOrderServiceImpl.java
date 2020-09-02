@@ -1,0 +1,86 @@
+package com.want.service.impl;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import com.want.dto.ErpOrderDto;
+import com.want.mapper.ResetOrderMapper;
+import com.want.po.OrderReset;
+import com.want.service.IResetOrderService;
+
+@Service 
+@Transactional
+public class ResetOrderServiceImpl implements IResetOrderService{
+	
+	@Autowired
+    private ResetOrderMapper resetOrderMapper;
+	
+	@Override
+	public List<ErpOrderDto> getErpOrder(String erpOrderCode,String sid) {
+//		if ( null == erpOrderCode || erpOrderCode.trim().length()<= 0) {
+//			return null;
+//		}
+		 List<ErpOrderDto> orderList=resetOrderMapper.getErpOrder(erpOrderCode,sid);
+		 if(null != orderList && orderList.size()>0 ) {
+			 for (ErpOrderDto item : orderList) {
+				 item.setPurchaseOrederInfoDetailList(resetOrderMapper.getErpOrderInfoDetails(item.getSid()));
+			}
+		 }		 
+	    return orderList;
+	}
+	
+	@Override
+	public Map<String, String> updateErpOrder(String sid,String userId,String userName,String reaetReason) {
+		Map<String, String> otReturn= new HashMap<String, String>();
+		if ( null == sid || "".equals(sid)) {
+			return null;
+		}
+		String empInfo=userId+"-"+userName;
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String currentDate=formatter.format(Calendar.getInstance().getTime());
+		try {
+			Map<String, String> otvbakMap= new HashMap<String, String>();
+			ErpOrderDto item=resetOrderMapper.getErpOrderBySid(sid);
+			
+			otvbakMap.put("sid", sid);
+			otvbakMap.put("orderCode", item.getOrderCode());
+			otvbakMap.put("empInfo", empInfo);
+			otvbakMap.put("currentDate", currentDate);
+
+			String status = resetOrderMapper.validateCustomerRebate(sid);
+			if(status != null) {
+				resetOrderMapper.updateCustomerRebate(sid);
+				resetOrderMapper.insertCustomerRebateRecord(sid,userId+"-"+userName);
+			}
+			resetOrderMapper.updateErpOrderDetail(sid);
+			resetOrderMapper.updateErpOrder(otvbakMap);	 
+			resetOrderMapper.updateOrder(otvbakMap);
+			
+			OrderReset orderReset = new OrderReset();
+			orderReset.setOrderCode(item.getOrderCode());
+			orderReset.setErpOrderCode(item.getFeedbackInfor());
+			orderReset.setCreateUser(userId);
+			orderReset.setCreateDate(Calendar.getInstance().getTime());
+			orderReset.setReaetReason(reaetReason);
+			resetOrderMapper.insertOrderReset(orderReset);
+			item.setPurchaseOrederInfoDetailList(resetOrderMapper.getErpOrderInfoDetails(item.getSid()));
+			otReturn.put("orderCode", "200");
+			otReturn.put("type", "S");
+			otReturn.put("message", "重置成功");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			otReturn.put("orderCode", "500");
+			otReturn.put("type", "F");
+			otReturn.put("message", "重置失败");
+			e.printStackTrace();
+			//TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		}
+		return otReturn;
+	}
+
+}

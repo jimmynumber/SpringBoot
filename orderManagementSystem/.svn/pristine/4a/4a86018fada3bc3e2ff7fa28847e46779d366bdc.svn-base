@@ -1,0 +1,22 @@
+package com.want.controller;
+
+import javax.jws.WebService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import com.want.dto.ResponseEntity;
+import com.want.service.IAttenceWebService;
+import com.want.vo.Attence;
+
+@WebService
+public class AttenceWebServiceController {
+
+      @Autowired
+      private IAttenceWebService Service;
+      
+	  @PostMapping("/accessAttence") 
+	  public ResponseEntity accessAttence(Attence attence){ 
+		  return Service.accessAttence(attence);
+	  }
+}

@@ -1,0 +1,112 @@
+package com.want.controller;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.want.dto.AttributeInfo;
+import com.want.dto.ErpOrderDto;
+import com.want.dto.OrderDto;
+import com.want.dto.OrderInfoDto;
+import com.want.dto.Organization;
+import com.want.service.IOrderService;
+import com.want.vo.ErpOrder;
+import com.want.vo.ErpOrderDetailVo;
+import com.want.vo.Order;
+
+@CrossOrigin
+@RestController 
+public class OrderController {
+	private static final Logger LOGGER = LoggerFactory.getLogger(OrderController.class);
+
+	@Autowired
+    private IOrderService service;
+	
+	// 根据 客户编号获取组织信息
+	@GetMapping("/orgList") 
+	public List<Organization> orgList(String userId) { 
+		return service.orgList(userId); 
+	} 
+	
+	// 根据 订单编号取消订单
+	@GetMapping("/cancelOrder") 
+	public Map<String,Object> cancelOrder(String empId,String empName,String orderId,String cancelReason) { 
+		return service.cancelOrder(empId+"-"+empName,orderId,cancelReason); 
+	} 
+	
+    // 根据 客户编号,订单编号,下单时间获取订单信息
+    @GetMapping("/queryOrderByCondition") 
+    public List<OrderInfoDto> queryOrderByCondition(Order order) { 
+        return service.queryOrderByCondition(order); 
+    }
+    
+	// 根据 订单编号,获取SOCS需求订单信息及详情 
+	@GetMapping("/getOrderInfos") 
+	public OrderDto getOrderInfos(String orderCode) { 
+		return service.getOrderInfos(orderCode); 
+	} 
+	// 根据 订单编号,获取采购订单信息及详情 
+	@GetMapping("/getErpOrders") 
+	public List<ErpOrderDto> getErpOrders(String orderCode) { 
+		return service.getErpOrders(orderCode);
+	} 
+	 	
+	// 抛转erp 订单 并更新数据状态
+    @GetMapping(value = "/updateErpOrders") 
+    public List<ErpOrderDto> updateErpOrders(String sids,String userId,String userName,String openOrderDate) {
+    	LOGGER.info("OrderController.updateErpOrders sids:{},userId:{},userName:{},openOrderDate:{}  ",sids,userId,userName,openOrderDate);
+    	if ( null == sids || sids.trim().length()<= 0) {
+			return null;
+		}
+    	List<String> orderCodes= Arrays.asList(sids.split(","));
+        return service.updateErpOrders(orderCodes,userId+"-"+userName,openOrderDate);
+    }  
+    
+    // 明细页面进行【关闭订单】 
+    @PostMapping(value = "/closeOrder") 
+    public Map<String,Object> closeOrder(@RequestBody  ErpOrder erpOrder) {
+    	LOGGER.info("OrderController.closeOrderTest ErpOrder:{} ",erpOrder.toString());
+    	return service.closeOrder(erpOrder);
+    }  
+    
+    // 获取订单状态
+    @GetMapping(value = "/getOrderStatus") 
+    public List<AttributeInfo> getOrderStatus() {
+    	Map<String,String> map=new HashMap<>();
+    	map.put("attributeId", "ORDER_INFO.ORDER_STATUS");
+    	return service.getAttributeInfo(map);
+    }  
+    // 获取订单来源
+    @GetMapping(value = "/getDataSource") 
+    public List<AttributeInfo> getDataSource() {
+    	Map<String,String> map=new HashMap<>();
+    	map.put("attributeId", "ORDER_INFO.DATA_SOURCE");
+    	return service.getAttributeInfo(map);
+    }  
+    
+    // 获取配置属性
+    @GetMapping(value = "/getAttributeInfo") 
+    public List<AttributeInfo> getAttributeInfo(@RequestParam(required = false) Map<String, String> map) {
+    	return service.getAttributeInfo(map);
+    }  
+    
+    // 根据sid 修改 erp_order_detail 折后单价，订单数量，订单金额
+    @PostMapping(value = "modifyErpOrderDetail")
+    public void modifyErpOrderDetail(@RequestBody ErpOrderDetailVo erpOrderDetailVo ) {
+    	LOGGER.info("OrderController.modifyErpOrderDetail ErpOrderDetailVo:{} ",erpOrderDetailVo.toString());
+    	service.modifyErpOrderDetail(erpOrderDetailVo);
+    }
+    
+    
+}

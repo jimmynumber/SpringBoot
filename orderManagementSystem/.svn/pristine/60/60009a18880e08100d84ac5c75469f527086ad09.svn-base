@@ -1,0 +1,88 @@
+package com.want.vo;
+
+import java.io.Serializable;
+
+@SuppressWarnings("serial")
+public class IT_EKKO implements Serializable{
+
+    private String ORDER_CODE;
+    private String SALE_COMPANY;
+    private String DISTRIBUTION_CHANNEL;
+    private String PRODUCT_GROUP;
+    private String SAP_BUYER_CODE;
+    private String ORDER_TIME;
+    private String SAP_RECEIVER_CODE;
+    private String MEMO;
+    private String CREATE_USER;
+    private String CREATE_DATE;
+	public String getORDER_CODE() {
+		return ORDER_CODE;
+	}
+	public void setORDER_CODE(String oRDER_CODE) {
+		ORDER_CODE = oRDER_CODE;
+	}
+	public String getSALE_COMPANY() {
+		return SALE_COMPANY;
+	}
+	public void setSALE_COMPANY(String sALE_COMPANY) {
+		SALE_COMPANY = sALE_COMPANY;
+	}
+	public String getDISTRIBUTION_CHANNEL() {
+		return DISTRIBUTION_CHANNEL;
+	}
+	public void setDISTRIBUTION_CHANNEL(String dISTRIBUTION_CHANNEL) {
+		DISTRIBUTION_CHANNEL = dISTRIBUTION_CHANNEL;
+	}
+	public String getPRODUCT_GROUP() {
+		return PRODUCT_GROUP;
+	}
+	public void setPRODUCT_GROUP(String pRODUCT_GROUP) {
+		PRODUCT_GROUP = pRODUCT_GROUP;
+	}
+	public String getSAP_BUYER_CODE() {
+		return SAP_BUYER_CODE;
+	}
+	public void setSAP_BUYER_CODE(String sAP_BUYER_CODE) {
+		SAP_BUYER_CODE = sAP_BUYER_CODE;
+	}
+	public String getORDER_TIME() {
+		return ORDER_TIME;
+	}
+	public void setORDER_TIME(String oRDER_TIME) {
+		ORDER_TIME = oRDER_TIME;
+	}
+	public String getSAP_RECEIVER_CODE() {
+		return SAP_RECEIVER_CODE;
+	}
+	public void setSAP_RECEIVER_CODE(String sAP_RECEIVER_CODE) {
+		SAP_RECEIVER_CODE = sAP_RECEIVER_CODE;
+	}
+	public String getMEMO() {
+		return MEMO;
+	}
+	public void setMEMO(String mEMO) {
+		MEMO = mEMO;
+	}
+	public String getCREATE_USER() {
+		return CREATE_USER;
+	}
+	public void setCREATE_USER(String cREATE_USER) {
+		CREATE_USER = cREATE_USER;
+	}
+	public String getCREATE_DATE() {
+		return CREATE_DATE;
+	}
+	public void setCREATE_DATE(String cREATE_DATE) {
+		CREATE_DATE = cREATE_DATE;
+	}
+	@Override
+	public String toString() {
+		return "IT_EKKO [ORDER_CODE=" + ORDER_CODE + ", SALE_COMPANY=" + SALE_COMPANY + ", DISTRIBUTION_CHANNEL="
+				+ DISTRIBUTION_CHANNEL + ", PRODUCT_GROUP=" + PRODUCT_GROUP + ", SAP_BUYER_CODE=" + SAP_BUYER_CODE
+				+ ", ORDER_TIME=" + ORDER_TIME + ", SAP_RECEIVER_CODE=" + SAP_RECEIVER_CODE + ", MEMO=" + MEMO
+				+ ", CREATE_USER=" + CREATE_USER + ", CREATE_DATE=" + CREATE_DATE + "]";
+	}
+	
+	
+
+}

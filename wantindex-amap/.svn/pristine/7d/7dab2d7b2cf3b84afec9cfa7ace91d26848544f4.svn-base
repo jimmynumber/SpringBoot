@@ -1,0 +1,52 @@
+#spring.profiles.active=dev
+# jasypt
+jasypt.encryptor.password=wwrd)(*&
+jasypt.encryptor.algorithm=PBEWithMD5AndDES
+# mysql
+mybatis.mapper-locations=classpath:mapper/*.xml
+#mybatis.type-aliases-package=com.want.amap.entity
+mybatis.configuration.map-underscore-to-camel-case=true
+mybatis.configuration.default-fetch-size=100
+mybatis.configuration.default-statement-timeout=30
+
+mail.smtp.host=mail.want-want.com
+mail.smtp.user=iwant2test
+mail.smtp.password=P@ssw0rd001
+mail.smtp.from=WantIndex Amap <amap@want-want.com>
+mail.smtp.to=\u694a\u82f1\u9f8d <tony.yang@want-want.com>
+
+spring.messages.encoding=UTF-8
+
+#excel tilte
+title=\u5927\u533a, \u5206\u516c\u53f8, \u8425\u4e1a\u6240, \u6807\u51c6\u5e02\u573a, \u8bbe\u65bd\u5927\u7c7b, \u8bbe\u65bd\u4e2d\u7c7b, \u8bbe\u65bd\u5c0f\u7c7b, \u7ec8\u7aef\u6570
+
+# mongodb
+spring.data.mongodb.uri=mongodb://wwadmin:0ozj6DAj52@10.0.26.164:27017/admin
+spring.data.mongodb.database=spider
+spring.data.mongodb.option.connect-timeout=0
+# mysql
+spring.datasource.mysql.url=jdbc:mysql://10.0.26.224:3306/wantHD2?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+spring.datasource.mysql.username=wwdevelop
+spring.datasource.mysql.password=5tgb^YHN
+spring.datasource.mysql.driver-class-name=com.mysql.jdbc.Driver
+# oracle
+spring.datasource.oracle.url=jdbc:oracle:thin:@10.0.1.130:1521:SDQ
+spring.datasource.oracle.username=sales 
+spring.datasource.oracle.password=sales@Biz.want 
+spring.datasource.oracle.driverClassName = oracle.jdbc.driver.OracleDriver
+spring.datasource.oracle.max-idle=10 
+spring.datasource.oracle.max-wait=10000 
+spring.datasource.oracle.min-idle=5 
+spring.datasource.oracle.initial-size=5
+# EmpDepVisibleJob
+empdepvisiblejob.hasadmin=true
+mail.notify=false
+
+#excelPath=/Users/80005121/Desktop/index_boot/\u9ad8\u5fb7\u5730\u56fe\u8bbe\u65bd\u7f51\u70b9\u4fe1\u606f\u6570\u636e\u7d22\u53d6
+excelPath=/usr/local/opt/netpoint/UserData/
+
+#orgIndexPath=/Users/80005121/Desktop/index_boot/comp_basic
+orgIndexPath=/usr/local/opt/netpoint/lucene_index/comp_basic
+
+#gaodeIndexPath=/Users/80005121/Desktop/index_boot/poi_index_mapping
+gaodeIndexPath=/usr/local/opt/netpoint/lucene_index/poi_index_mapping

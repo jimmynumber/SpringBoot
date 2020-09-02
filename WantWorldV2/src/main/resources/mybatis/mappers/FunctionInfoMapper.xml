@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.wantworld.dao.FunctionInfoDao">
+  <resultMap id="BaseResultMap" type="com.want.wantworld.entity.FunctionInfo">
+    <id column="SID" jdbcType="VARCHAR" property="sid" />
+    <result column="FUNC_GROUP_ID" jdbcType="VARCHAR" property="funcGroupId" />
+    <result column="FUNC_ID" jdbcType="VARCHAR" property="funcId" />
+    <result column="FUNC_NAME" jdbcType="VARCHAR" property="funcName" />
+    <result column="FUNC_URL" jdbcType="VARCHAR" property="funcUrl" />
+    <result column="BACKGROUD_IMG" jdbcType="VARCHAR" property="backgroudImg" />
+    <result column="GROUP_ID" jdbcType="CHAR" property="groupId" />
+    <result column="IN_ORDER" jdbcType="CHAR" property="inOrder" />
+    <result column="STATUS" jdbcType="VARCHAR" property="status" />
+    <result column="CREATOR" jdbcType="VARCHAR" property="creator" />
+    <result column="CREATE_DATE" jdbcType="TIMESTAMP" property="createDate" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    SID, FUNC_GROUP_ID, FUNC_ID, FUNC_NAME, FUNC_URL, BACKGROUD_IMG, GROUP_ID, IN_ORDER, 
+    STATUS, CREATOR, CREATE_DATE
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from WANTWORLDV2.FUNCTION_INFO
+    where SID = #{sid,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from WANTWORLDV2.FUNCTION_INFO
+    where SID = #{sid,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.want.wantworld.entity.FunctionInfo">
+    insert into WANTWORLDV2.FUNCTION_INFO (SID, FUNC_GROUP_ID, FUNC_ID, 
+      FUNC_NAME, FUNC_URL, BACKGROUD_IMG, 
+      GROUP_ID, IN_ORDER, STATUS, 
+      CREATOR, CREATE_DATE)
+    values (#{sid,jdbcType=VARCHAR}, #{funcGroupId,jdbcType=VARCHAR}, #{funcId,jdbcType=VARCHAR}, 
+      #{funcName,jdbcType=VARCHAR}, #{funcUrl,jdbcType=VARCHAR}, #{backgroudImg,jdbcType=VARCHAR}, 
+      #{groupId,jdbcType=CHAR}, #{inOrder,jdbcType=CHAR}, #{status,jdbcType=VARCHAR}, 
+      #{creator,jdbcType=VARCHAR}, #{createDate,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.want.wantworld.entity.FunctionInfo">
+    insert into WANTWORLDV2.FUNCTION_INFO
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="sid != null">
+        SID,
+      </if>
+      <if test="funcGroupId != null">
+        FUNC_GROUP_ID,
+      </if>
+      <if test="funcId != null">
+        FUNC_ID,
+      </if>
+      <if test="funcName != null">
+        FUNC_NAME,
+      </if>
+      <if test="funcUrl != null">
+        FUNC_URL,
+      </if>
+      <if test="backgroudImg != null">
+        BACKGROUD_IMG,
+      </if>
+      <if test="groupId != null">
+        GROUP_ID,
+      </if>
+      <if test="inOrder != null">
+        IN_ORDER,
+      </if>
+      <if test="status != null">
+        STATUS,
+      </if>
+      <if test="creator != null">
+        CREATOR,
+      </if>
+      <if test="createDate != null">
+        CREATE_DATE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="sid != null">
+        #{sid,jdbcType=VARCHAR},
+      </if>
+      <if test="funcGroupId != null">
+        #{funcGroupId,jdbcType=VARCHAR},
+      </if>
+      <if test="funcId != null">
+        #{funcId,jdbcType=VARCHAR},
+      </if>
+      <if test="funcName != null">
+        #{funcName,jdbcType=VARCHAR},
+      </if>
+      <if test="funcUrl != null">
+        #{funcUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="backgroudImg != null">
+        #{backgroudImg,jdbcType=VARCHAR},
+      </if>
+      <if test="groupId != null">
+        #{groupId,jdbcType=CHAR},
+      </if>
+      <if test="inOrder != null">
+        #{inOrder,jdbcType=CHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="creator != null">
+        #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.want.wantworld.entity.FunctionInfo">
+    update WANTWORLDV2.FUNCTION_INFO
+    <set>
+      <if test="funcGroupId != null">
+        FUNC_GROUP_ID = #{funcGroupId,jdbcType=VARCHAR},
+      </if>
+      <if test="funcId != null">
+        FUNC_ID = #{funcId,jdbcType=VARCHAR},
+      </if>
+      <if test="funcName != null">
+        FUNC_NAME = #{funcName,jdbcType=VARCHAR},
+      </if>
+      <if test="funcUrl != null">
+        FUNC_URL = #{funcUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="backgroudImg != null">
+        BACKGROUD_IMG = #{backgroudImg,jdbcType=VARCHAR},
+      </if>
+      <if test="groupId != null">
+        GROUP_ID = #{groupId,jdbcType=CHAR},
+      </if>
+      <if test="inOrder != null">
+        IN_ORDER = #{inOrder,jdbcType=CHAR},
+      </if>
+      <if test="status != null">
+        STATUS = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="creator != null">
+        CREATOR = #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        CREATE_DATE = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where SID = #{sid,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.want.wantworld.entity.FunctionInfo">
+    update WANTWORLDV2.FUNCTION_INFO
+    set FUNC_GROUP_ID = #{funcGroupId,jdbcType=VARCHAR},
+      FUNC_ID = #{funcId,jdbcType=VARCHAR},
+      FUNC_NAME = #{funcName,jdbcType=VARCHAR},
+      FUNC_URL = #{funcUrl,jdbcType=VARCHAR},
+      BACKGROUD_IMG = #{backgroudImg,jdbcType=VARCHAR},
+      GROUP_ID = #{groupId,jdbcType=CHAR},
+      IN_ORDER = #{inOrder,jdbcType=CHAR},
+      STATUS = #{status,jdbcType=VARCHAR},
+      CREATOR = #{creator,jdbcType=VARCHAR},
+      CREATE_DATE = #{createDate,jdbcType=TIMESTAMP}
+    where SID = #{sid,jdbcType=VARCHAR}
+  </update>
+</mapper>

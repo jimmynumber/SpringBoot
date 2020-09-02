@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper.UserManagementMapper">
+
+   <select id="empQuery" resultType="com.want.dto.EmpInfo" parameterType="String">
+        SELECT A.EMP_ID,C.EMP_NAME,C.POS_NAME,A.ORG_ID from EMP_ORG_REL A
+		INNER JOIN
+		(SELECT ORG_ID,ORG_NAME,ORG_LEVEL,PARENT_ORG_ID FROM ORGANIZATION
+		start with ORG_ID = #{orgId}
+		connect by prior ORG_ID=PARENT_ORG_ID order by ORG_LEVEL)
+		B ON A.ORG_ID=B.ORG_ID
+		INNER JOIN EMP_POS_ORG C ON A.EMP_ID=C.EMP_ID AND MASTER_POS='1'
+		<if test="empId != null and empId != '' "> 
+			 WHERE A.EMP_ID = #{empId}  
+		</if>
+		ORDER BY EMP_ID,POS_NAME,ORG_ID		
+  	</select>
+  	
+  	<select id="orgQuery" resultType="String" parameterType="String">
+        SELECT LISTAGG(ORG_NAME,'/' ) within group(order by ORG_LEVEL) as ORG_NAME 
+		FROM ORGANIZATION start with ORG_ID = #{orgId}
+		connect by prior PARENT_ORG_ID=ORG_ID 	
+  	</select>
+  
+</mapper> 

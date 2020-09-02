@@ -1,0 +1,162 @@
+package com.want.service.impl;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Date;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import com.want.dto.BatchStatusDto;
+import com.want.dto.ResponseEntity;
+import com.want.mapper.AttenceMapper;
+import com.want.mapper.BatchStatusMapper;
+import com.want.service.IAttenceWebService;
+import com.want.vo.Attence;
+
+@Service
+//@Transactional
+public class AttenceWebServiceImpl implements IAttenceWebService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AttenceWebServiceImpl.class);
+	
+	@Autowired
+    private AttenceMapper attenceMapper;
+	
+	@Autowired
+    private BatchStatusMapper batchStatusMapper;
+	
+	private String batchStatusFuncId = StringUtils.uncapitalize(this.getClass().getSimpleName());
+	
+	protected BatchStatusDto batchStatus = null;
+	@SuppressWarnings("finally")
+	@Override
+	public ResponseEntity accessAttence(List<Attence> list) {
+		LOGGER.info("--AttenceWebService.accessAttence,attence:{} ",list+"");
+		ResponseEntity result=new ResponseEntity();
+		try {
+			gc();
+			batchStatus = getBatchStatus(batchStatusFuncId);
+			LOGGER.info("*** Job started: " + batchStatus.getFuncid() + ", " + getMemoryInfo());
+			/*******************/
+			StringBuilder sb=new StringBuilder();
+			StringBuilder reasonSb=new StringBuilder("异常原因：\n\r");
+			int totalNum=list.size();
+			int insertNum=0;
+			int updateNum=0;
+			int insertCot=0;
+			int updateCot=0;
+			for (Attence attence : list) {
+				String id = attence.getId();
+				String dataType=attence.getDataType();// 1：新增数据,2：更新数据
+				if( dataType !=null && "1".equals(dataType.trim())){
+					insertNum=insertNum+this.insert(attence,sb,reasonSb);
+					insertCot++;
+				}else {
+					if (!attenceMapper.checkAttenceExist(id)) {
+						insertNum=insertNum+this.insert(attence,sb,reasonSb);
+						insertCot++;
+					} else {
+						updateNum=updateNum+this.update(attence,sb,reasonSb);
+						updateCot++;
+					}
+				}
+			}
+			if (totalNum == (insertNum+updateNum)) {
+				result.setType("S");
+				String msg="成功接收%s笔考勤资料,其中新增%d笔,更新%d笔";
+				msg=String.format(msg,totalNum,insertNum,updateNum );
+				result.setMessage(msg);
+				batchStatus.setType("S");
+				batchStatus.setMessage(msg);
+			}else {
+				result.setType("E");
+				String msg="接收%s笔考勤资料,其中新增成功%d笔,新增失败%d笔,更新成功%d笔,更新失败%d笔";
+				msg=String.format(msg,totalNum,insertNum,(insertCot-insertNum),updateNum,(updateCot-updateNum) );
+				result.setMessage(msg);
+				result.setEid(sb.toString().substring(0, sb.toString().length()-1));
+				batchStatus.setReason(reasonSb.toString());
+				batchStatus.setType("E");
+				batchStatus.setMessage(msg);
+				batchStatus.setEid(sb.toString().substring(0, sb.toString().length()-1));
+			}
+			/*******************/
+			batchStatus.setStatus(BatchStatusMapper.FUNC_STATUS_SUCCESSED);
+			LOGGER.info("*** Job success: " + batchStatus);
+		} catch (Exception e) {
+			LOGGER.error("batch execute error >>> "+ errorTrackSpace(e));
+			batchStatus.setStatus(BatchStatusMapper.FUNC_STATUS_FAILED);
+			batchStatus.setReason(errorTrackSpace(e));
+			batchStatus.setType("E");
+			batchStatus.setMessage("接受考勤资料失败");
+			result.setType("E");
+			result.setMessage("接受考勤资料失败");
+			LOGGER.error("*** Job failed: " + batchStatus);
+		} finally {
+			batchStatus.setEndDate(new Date());
+			batchStatusMapper.insertBatchStatus(batchStatus);
+			gc();
+			return result;
+		}
+	}
+   private int insert(Attence attence,StringBuilder sb,StringBuilder reasonSb) {
+	   try {
+			attenceMapper.insertAttence(attence);
+			return 1;
+		} catch (Exception e) {
+			sb.append(attence.getId()+",");
+			reasonSb.append(attence.getId()+" : "+e.toString()+"\n\r");
+			LOGGER.error("--AttenceWebService.accessAttence.insertAttence,Exception:{} ",errorTrackSpace(e));
+			return 0;
+		}
+   }
+   private int update(Attence attence,StringBuilder sb,StringBuilder reasonSb) {
+	   try {
+		   attenceMapper.updateAttence(attence);
+		   return 1;
+	   } catch (Exception e) {
+		   sb.append(attence.getId()+",");
+		   reasonSb.append(attence.getId()+" : "+e.toString()+"\n\r");
+		   LOGGER.error("--AttenceWebService.accessAttence.updateAttence,Exception:{} ",errorTrackSpace(e));
+		   return 0;
+	   }
+   }
+   private BatchStatusDto getBatchStatus(String funcId) {
+	   BatchStatusDto bs = new BatchStatusDto();
+		bs.setFuncid(funcId);
+		bs.setStartDate(new Date());
+		bs.setEndDate(null);
+		bs.setStatus(BatchStatusMapper.FUNC_STATUS_RUNNING);
+		bs.setReason("");
+		return bs;
+	}
+   private void gc() {
+		Runtime.getRuntime().gc();
+	}
+   
+   private String getMemoryInfo() {
+		return "max memory " + Runtime.getRuntime().maxMemory()
+			+ ", free memory " + Runtime.getRuntime().freeMemory();
+	}
+   /**
+    * 输出异常信息
+    * @param e
+    * @return
+    */
+   private static String errorTrackSpace(Exception e) {
+	   ByteArrayOutputStream out = new ByteArrayOutputStream();
+	   PrintStream pout = new PrintStream(out);
+	   e.printStackTrace(pout);
+	   String ret = new String(out.toByteArray());
+	   pout.close();
+	   try {
+	     out.close();
+	   } catch (Exception ex) {
+		   
+	   }
+	   return ret;
+   }
+}

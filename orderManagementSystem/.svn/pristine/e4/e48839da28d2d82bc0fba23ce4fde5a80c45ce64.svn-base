@@ -1,0 +1,91 @@
+package com.want.vo;
+import java.io.Serializable;
+import java.util.List;
+
+
+public class OrderInfo implements Serializable{
+
+    private static final long serialVersionUID = 2120869894112984147L;
+
+    private String orderCode;
+    private String saleCompany;
+    private String distributionChannel;
+    private String productGroup;
+    private String sapBuyerCode;
+    private String orderTime;
+    private String sapReceiverCode;
+    private String memo;
+    private String createUser;
+    private String createDate;
+    
+    private List<OrderDetail> orderDetail;
+    
+	public String getOrderCode() {
+		return orderCode;
+	}
+	public void setOrderCode(String orderCode) {
+		this.orderCode = orderCode;
+	}
+	public String getSaleCompany() {
+		return saleCompany;
+	}
+	public void setSaleCompany(String saleCompany) {
+		this.saleCompany = saleCompany;
+	}
+	public String getDistributionChannel() {
+		return distributionChannel;
+	}
+	public void setDistributionChannel(String distributionChannel) {
+		this.distributionChannel = distributionChannel;
+	}
+	public String getProductGroup() {
+		return productGroup;
+	}
+	public void setProductGroup(String productGroup) {
+		this.productGroup = productGroup;
+	}
+	public String getSapBuyerCode() {
+		return sapBuyerCode;
+	}
+	public void setSapBuyerCode(String sapBuyerCode) {
+		this.sapBuyerCode = sapBuyerCode;
+	}
+	public String getSapReceiverCode() {
+		return sapReceiverCode;
+	}
+	public void setSapReceiverCode(String sapReceiverCode) {
+		this.sapReceiverCode = sapReceiverCode;
+	}
+	public String getMemo() {
+		return memo;
+	}
+	public void setMemo(String memo) {
+		this.memo = memo;
+	}
+	public String getCreateUser() {
+		return createUser;
+	}
+	public void setCreateUser(String createUser) {
+		this.createUser = createUser;
+	}
+	public List<OrderDetail> getOrderDetail() {
+		return orderDetail;
+	}
+	public void setOrderDetail(List<OrderDetail> orderDetail) {
+		this.orderDetail = orderDetail;
+	}
+	public String getOrderTime() {
+		return orderTime;
+	}
+	public void setOrderTime(String orderTime) {
+		this.orderTime = orderTime;
+	}
+	public String getCreateDate() {
+		return createDate;
+	}
+	public void setCreateDate(String createDate) {
+		this.createDate = createDate;
+	}
+	
+    
+}

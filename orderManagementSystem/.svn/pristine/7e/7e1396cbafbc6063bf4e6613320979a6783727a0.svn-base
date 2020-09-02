@@ -1,0 +1,65 @@
+package com.want.po;
+
+
+public class PromoteInfo{
+
+    private String promoteId;
+    private String promotePolicyDesc;
+    private String giveProdId;
+    private Double salesPrice;
+    private Double promoteCount;
+    private String promoteUnit;
+    private Double giveCount;
+    private String giveUnit;
+    
+	public String getPromoteId() {
+		return promoteId;
+	}
+	public void setPromoteId(String promoteId) {
+		this.promoteId = promoteId;
+	}
+	public String getPromotePolicyDesc() {
+		return promotePolicyDesc;
+	}
+	public void setPromotePolicyDesc(String promotePolicyDesc) {
+		this.promotePolicyDesc = promotePolicyDesc;
+	}
+	public String getGiveProdId() {
+		return giveProdId;
+	}
+	public void setGiveProdId(String giveProdId) {
+		this.giveProdId = giveProdId;
+	}
+	public Double getSalesPrice() {
+		return salesPrice;
+	}
+	public void setSalesPrice(Double salesPrice) {
+		this.salesPrice = salesPrice;
+	}
+	public Double getPromoteCount() {
+		return promoteCount;
+	}
+	public void setPromoteCount(Double promoteCount) {
+		this.promoteCount = promoteCount;
+	}
+	public String getPromoteUnit() {
+		return promoteUnit;
+	}
+	public void setPromoteUnit(String promoteUnit) {
+		this.promoteUnit = promoteUnit;
+	}
+	public Double getGiveCount() {
+		return giveCount;
+	}
+	public void setGiveCount(Double giveCount) {
+		this.giveCount = giveCount;
+	}
+	public String getGiveUnit() {
+		return giveUnit;
+	}
+	public void setGiveUnit(String giveUnit) {
+		this.giveUnit = giveUnit;
+	}
+    
+    
+}

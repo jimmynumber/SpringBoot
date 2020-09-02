@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper.LoginMapper">
+    
+    <resultMap id="loginTokenMap" type="com.want.po.LoginToken">
+        <id property="token"       column="TOKEN" />
+        <id property="empId"       column="EMP_ID" />
+        <id property="loginState"  column="LOGIN_STATE" />
+        <id property="deadLine"    column="DEADLINE" />
+        <id property="createDate"  column="CREATE_DATE" />
+        <id property="updateDate"  column="UPDATE_DATE" />
+    </resultMap>
+    
+   <!--验证人员是否有权限登录  -->   
+   <select id="validateLogin" resultType="java.lang.String"  parameterType="java.lang.String">
+   	  select distinct EMP_ID from EMP_ROLE_REL where EMP_ID=#{empId,jdbcType=VARCHAR}    
+   </select>
+  
+  	<select id="getTokenByEmpId" resultMap="loginTokenMap" resultType="com.want.po.LoginToken" parameterType="String">
+        select a.TOKEN, a.EMP_ID, a.LOGIN_STATE, a.DEADLINE, a.CREATE_DATE, a.UPDATE_DATE 
+        from LOGIN_TOKEN a
+        where a.EMP_ID=#{empId}
+ 	</select>
+ 	
+ 	<!-- 新增token信息 -->
+ 	<insert id="saveLoginToken" parameterType="com.want.po.LoginToken">
+     	INSERT INTO LOGIN_TOKEN (TOKEN, EMP_ID, LOGIN_STATE, DEADLINE, CREATE_DATE) 
+	    VALUES (
+	    	#{loginToken.token,jdbcType=VARCHAR},
+	    	#{loginToken.empId,jdbcType=VARCHAR},
+	    	#{loginToken.loginState,jdbcType=VARCHAR},
+	    	#{loginToken.deadLine,jdbcType=TIMESTAMP},
+	    	#{loginToken.createDate,jdbcType=TIMESTAMP})
+     </insert>
+     
+     <!-- 修改token信息 -->
+     <update id="updateLoginToken" parameterType="com.want.po.LoginToken">
+     	update LOGIN_TOKEN set 
+        	TOKEN=#{loginToken.token,jdbcType=VARCHAR},
+        	LOGIN_STATE=#{loginToken.loginState,jdbcType=VARCHAR},
+        	DEADLINE=#{loginToken.deadLine,jdbcType=TIMESTAMP},
+        	UPDATE_DATE=#{loginToken.updateDate,jdbcType=TIMESTAMP}
+        where 
+        	EMP_ID=#{loginToken.empId}
+    </update> 	
+    
+    <select id="getTokenByEmpIdAndToken" resultMap="loginTokenMap" resultType="com.want.po.LoginToken" parameterType="String">
+        select a.TOKEN, a.EMP_ID, a.LOGIN_STATE, a.DEADLINE, a.CREATE_DATE, a.UPDATE_DATE 
+        from LOGIN_TOKEN a
+        where a.EMP_ID=#{empId} and a.TOKEN=#{token}
+ 	</select>
+ 	
+ 	<select id="functionList" resultType="com.want.dto.FunctionInfo" parameterType="String">
+ 		select distinct * from (
+        SELECT FUNCTION_ID as id,FUNCTION_NAME as name,
+        PARENT_FUNCTION_ID as parentId,FUNCTION_LEVEL as functionLevel,
+		FUNCTION_URL as path,ICON_URL as iconUrl 
+		FROM FUNCTION_INFO start with FUNCTION_ID in (
+		SELECT B.FUNCTION_ID FROM EMP_ROLE_REL A,ROLE_FUNCTION_REL B
+		 WHERE A.EMP_ID = #{empId} AND A.ROLE_ID=B.ROLE_ID) 
+		 connect by prior FUNCTION_ID=PARENT_FUNCTION_ID 
+		 union all
+		 SELECT FUNCTION_ID as id,FUNCTION_NAME as name,
+        PARENT_FUNCTION_ID as parentId,FUNCTION_LEVEL as functionLevel,
+		FUNCTION_URL as path,ICON_URL as iconUrl
+		FROM FUNCTION_INFO start with FUNCTION_ID in (
+		SELECT B.FUNCTION_ID FROM EMP_ROLE_REL A,ROLE_FUNCTION_REL B
+		 WHERE A.EMP_ID = #{empId} AND A.ROLE_ID=B.ROLE_ID) 
+		 connect by prior PARENT_FUNCTION_ID=FUNCTION_ID)
+		 order by FUNCTIONLEVEL,ID
+  	</select>
+
+</mapper> 

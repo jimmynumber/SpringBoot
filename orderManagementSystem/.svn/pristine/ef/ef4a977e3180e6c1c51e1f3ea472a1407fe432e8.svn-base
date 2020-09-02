@@ -1,0 +1,162 @@
+package com.want.service.impl;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Date;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import com.want.dto.MonitorDto;
+import com.want.dto.ResponseEntity;
+import com.want.mapper.AttenceMapper;
+import com.want.mapper.MonitorMapper;
+import com.want.service.IAttenceWebService;
+import com.want.vo.Attence;
+
+@Service
+//@Transactional
+public class AttenceWebServiceImpl implements IAttenceWebService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AttenceWebServiceImpl.class);
+	
+	@Autowired
+    private AttenceMapper attenceMapper;
+	
+	@Autowired
+    private MonitorMapper monitorMapper;
+	
+	private String monitorFuncId = StringUtils.uncapitalize(this.getClass().getSimpleName());
+	
+	private MonitorDto monitor = null;
+	
+	@SuppressWarnings("finally")
+	@Override
+	public ResponseEntity accessAttence(List<Attence> list) {
+		//LOGGER.info("--AttenceWebService.accessAttence,attence:{} ",list+"");
+		ResponseEntity result=new ResponseEntity();
+		try {
+			monitor = getMonitor(monitorFuncId);
+			LOGGER.info("*** monitor started: " + monitor.getFuncid() + ", " + getMemoryInfo());
+			/*******************/
+			StringBuilder sb=new StringBuilder();
+			StringBuilder reasonSb=new StringBuilder("异常原因：\n");
+			int totalNum=list.size();
+			int insertNum=0;
+			int updateNum=0;
+			int insertCot=0;
+			int updateCot=0;
+			for (Attence attence : list) {
+				String id = attence.getId();
+				String dataType=attence.getDataType();// 1：新增数据,2：更新数据
+				if( dataType !=null && "1".equals(dataType.trim())){
+					insertNum=insertNum+this.insert(attence,sb,reasonSb);
+					insertCot++;
+				}else {
+					if (!attenceMapper.checkAttenceExist(id)) {
+						insertNum=insertNum+this.insert(attence,sb,reasonSb);
+						insertCot++;
+					} else {
+						updateNum=updateNum+this.update(attence,sb,reasonSb);
+						updateCot++;
+					}
+				}
+			}
+			if (totalNum == (insertNum+updateNum)) {
+				result.setType("S");
+				String msg="成功接收%s笔考勤资料,其中新增%d笔,更新%d笔";
+				msg=String.format(msg,totalNum,insertNum,updateNum );
+				result.setMessage(msg);
+				monitor.setType("S");
+				monitor.setMessage(msg);
+			}else {
+				result.setType("E");
+				String msg="接收%s笔考勤资料,其中新增成功%d笔,新增失败%d笔,更新成功%d笔,更新失败%d笔";
+				msg=String.format(msg,totalNum,insertNum,(insertCot-insertNum),updateNum,(updateCot-updateNum) );
+				result.setMessage(msg);
+				result.setEid(sb.toString().substring(0, sb.toString().length()-1));
+				monitor.setReason(reasonSb.toString());
+				monitor.setType("E");
+				monitor.setMessage(msg);
+				monitor.setEid(sb.toString().substring(0, sb.toString().length()-1));
+			}
+			/*******************/
+			monitor.setStatus(MonitorMapper.FUNC_STATUS_SUCCESSED);
+			LOGGER.info("*** monitor success: " + monitor);
+		} catch (Exception e) {
+			LOGGER.error("monitor execute error >>> "+ errorTrackSpace(e));
+			monitor.setStatus(MonitorMapper.FUNC_STATUS_FAILED);
+			monitor.setReason(errorTrackSpace(e));
+			monitor.setType("E");
+			monitor.setMessage("接受考勤资料失败");
+			result.setType("E");
+			result.setMessage("接受考勤资料失败");
+			LOGGER.error("*** monitor failed: " + monitor);
+		} finally {
+			monitor.setEndDate(new Date());
+			monitorMapper.insertMonitor(monitor);
+			gc();
+			return result;
+		}
+	}
+   private int insert(Attence attence,StringBuilder sb,StringBuilder reasonSb) {
+	   try {
+			attenceMapper.insertAttence(attence);
+			return 1;
+		} catch (Exception e) {
+			sb.append(attence.getId()+",");
+			reasonSb.append(attence+" : "+e.toString()+"\n");
+			LOGGER.error("--AttenceWebService.accessAttence.insertAttence,Exception:{} ",errorTrackSpace(e));
+			return 0;
+		}
+   }
+   private int update(Attence attence,StringBuilder sb,StringBuilder reasonSb) {
+	   try {
+		   attenceMapper.updateAttence(attence);
+		   return 1;
+	   } catch (Exception e) {
+		   sb.append(attence.getId()+",");
+		   reasonSb.append(attence+" : "+e.toString()+"\n");
+		   LOGGER.error("--AttenceWebService.accessAttence.updateAttence,Exception:{} ",errorTrackSpace(e));
+		   return 0;
+	   }
+   }
+   private MonitorDto getMonitor(String funcId) {
+	    MonitorDto monitor = new MonitorDto();
+	    monitor.setFuncid(funcId);
+	    monitor.setStartDate(new Date());
+	    monitor.setEndDate(null);
+	    monitor.setStatus(MonitorMapper.FUNC_STATUS_RUNNING);
+	    monitor.setReason("");
+		return monitor;
+	}
+   private void gc() {
+		Runtime.getRuntime().gc();
+	}
+   
+   private String getMemoryInfo() {
+		return "max memory " + Runtime.getRuntime().maxMemory()
+			+ ", free memory " + Runtime.getRuntime().freeMemory();
+	}
+   /**
+    * 输出异常信息
+    * @param e
+    * @return
+    */
+   private static String errorTrackSpace(Exception e) {
+	   ByteArrayOutputStream out = new ByteArrayOutputStream();
+	   PrintStream pout = new PrintStream(out);
+	   e.printStackTrace(pout);
+	   String ret = new String(out.toByteArray());
+	   pout.close();
+	   try {
+	     out.close();
+	   } catch (Exception ex) {
+		   
+	   }
+	   return ret;
+   }
+}

@@ -1,0 +1,9 @@
+package com.want.service;
+
+import com.want.dto.ResponseEntity;
+import com.want.vo.Attence;
+
+public interface IAttenceWebService {
+	
+	ResponseEntity accessAttence(Attence attence);
+}

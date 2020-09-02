@@ -1,0 +1,22 @@
+package com.want.wantworld.controller;
+
+import java.util.Map;
+
+import javax.jws.WebService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import com.want.wantworld.service.ILoginService;
+
+@WebService
+public class ValidateTokenWebServiceController {
+
+    @Autowired
+    private ILoginService service;
+    
+    @GetMapping("/validateToken") 
+    public Map<String, String> validateToken(String token ) { 
+        return service.validateToken(token);
+    }
+}

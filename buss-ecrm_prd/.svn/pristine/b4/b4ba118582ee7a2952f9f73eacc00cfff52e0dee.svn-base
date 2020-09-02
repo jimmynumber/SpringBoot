@@ -1,0 +1,4 @@
+spring.datasource.url=jdbc:oracle:thin:@10.0.26.225:1521/ORCLPDB
+spring.datasource.username=SALESGROUP2_ODS
+spring.datasource.password=salesgroup2_ods#TEST
+spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver

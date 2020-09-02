@@ -1,0 +1,78 @@
+package com.want.po;
+
+
+public class OrderDetail{
+
+    private String lineNumber;
+    private String orderCode;
+    private String productCode;
+    private Double price;
+    private String unit;
+    private Double count;
+    private String saleType;
+    private Double sumAmount;
+    private String itemMemo;
+    private String productType;
+    
+	public String getLineNumber() {
+		return lineNumber;
+	}
+	public void setLineNumber(String lineNumber) {
+		this.lineNumber = lineNumber;
+	}
+	public String getOrderCode() {
+		return orderCode;
+	}
+	public void setOrderCode(String orderCode) {
+		this.orderCode = orderCode;
+	}
+	public String getProductCode() {
+		return productCode;
+	}
+	public void setProductCode(String productCode) {
+		this.productCode = productCode;
+	}
+	public Double getPrice() {
+		return price;
+	}
+	public void setPrice(Double price) {
+		this.price = price;
+	}
+	public String getUnit() {
+		return unit;
+	}
+	public void setUnit(String unit) {
+		this.unit = unit;
+	}
+	public Double getCount() {
+		return count;
+	}
+	public void setCount(Double count) {
+		this.count = count;
+	}
+	public Double getSumAmount() {
+		return sumAmount;
+	}
+	public void setSumAmount(Double sumAmount) {
+		this.sumAmount = sumAmount;
+	}
+	public String getSaleType() {
+		return saleType;
+	}
+	public void setSaleType(String saleType) {
+		this.saleType = saleType;
+	}
+	public String getItemMemo() {
+		return itemMemo;
+	}
+	public void setItemMemo(String itemMemo) {
+		this.itemMemo = itemMemo;
+	}
+	public String getProductType() {
+		return productType;
+	}
+	public void setProductType(String productType) {
+		this.productType = productType;
+	}
+    
+}

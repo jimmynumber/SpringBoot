@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.want.mapper.OrderMapper">
+
+    <resultMap id="orgMap" type="com.want.dto.Organization">
+        <id property="orgId"       column="ORG_ID" />
+        <id property="orgName"     column="ORG_NAME" />
+        <id property="orgLevel"    column="ORG_LEVEL" />
+        <id property="parentOrgID" column="PARENT_ORG_ID" />
+    </resultMap>
+    
+    <resultMap id="packageMap" type="com.want.po.PackageInfo">
+        <id property="packageId"     column="PACKAGE_ID" />
+        <id property="prodSku"       column="PROD_SKU" />
+        <id property="prodName"      column="PROD_NAME" />
+        <id property="prodCount"     column="PROD_COUNT" />
+        <id property="salePrice"     column="SALE_PRICE" />
+        <id property="discountPrice" column="DISCOUNT_PRICE" />
+        <id property="prodAmount"    column="PROD_AMOUNT" />
+        <id property="unitCode"      column="UNIT_CODE" />
+        <id property="unitName"      column="UNIT_NAME" />
+    </resultMap>
+  
+	 <insert id="insertOrderInfo" parameterType="com.want.po.OrderInfo">
+     		INSERT INTO ORDER_INFO (ORDER_CODE,SALE_COMPANY,DISTRIBUTION_CHANNEL,PRODUCT_GROUP
+     		,SAP_BUYER_CODE,ORDER_TIME,SAP_RECEIVER_CODE,MEMO,CREATE_USER,CREATE_DATE
+     		,ORDER_TYPE,ORDER_STATUS,CANCEL_REASON,UPDATE_USER,UPDATE_DATE) 
+	    	VALUES(#{order.orderCode},#{order.saleCompany},#{order.distributionChannel}
+	    	,#{order.productGroup},#{order.sapBuyerCode},#{order.orderTime}
+	    	,#{order.sapReceiverCode},#{order.memo},#{order.createUser},#{order.createDate}
+	    	,#{order.orderType},#{order.orderStatus},#{order.cancelReason}
+	    	,#{order.updateUser},#{order.updateDate})
+     </insert>
+     
+     <insert id="insertOrderDetail" parameterType="java.util.List">
+  		insert all 
+    	<foreach collection="list" item="item" index="index" separator=" ">
+    		into ORDER_DETAIL (LINE_NUMBER,ORDER_CODE,PRODUCT_CODE,PRICE,UNIT,COUNT
+    		,SALE_TYPE,SUM_AMOUNT,ITEM_MEMO,PRODUCT_TYPE) values 
+    		(#{item.lineNumber},#{item.orderCode},#{item.productCode}
+    		,#{item.price},#{item.unit},#{item.count},#{item.saleType}
+    		,#{item.sumAmount},#{item.itemMemo},#{item.productType})
+  		</foreach>
+  		select * from dual
+  	</insert>
+  
+  	<select id="orgList" resultMap="orgMap" resultType="com.want.dto.Organization" parameterType="String">
+        SELECT ORG_ID,ORG_NAME,ORG_LEVEL,PARENT_ORG_ID FROM ORGANIZATION
+        start with ORG_ID=(
+	        SELECT a.ORG_ID FROM ORGANIZATION a,EMP_ORG_REL b
+			where a.ORG_ID=b.ORG_ID and b.EMP_ID=#{empId}
+        ) connect by prior ORG_ID=PARENT_ORG_ID order by ORG_LEVEL
+  	</select>
+  
+  	<select id="prodList" resultMap="packageMap" resultType="com.want.po.PackageInfo" parameterType="String">
+        SELECT a.PACKAGE_ID,a.PACKAGE_NAME,b.PROD_SKU,b.PROD_NAME,b.PROD_COUNT,b.SALE_PRICE
+        ,b.DISCOUNT_PRICE,b.PROD_AMOUNT,b.UNIT_CODE,b.UNIT_NAME FROM PACKAGE a,PACKAGE_DETAIL b
+        where a.PACKAGE_ID=b.PACKAGE_ID and a.IS_DELETE=0 and a.PACKAGE_ID=#{packageId}
+ 	</select>
+ 	
+ 	<select id="queryOrderByCode" resultType="java.lang.Long" parameterType="String">
+        SELECT COUNT(*) FROM ORDER_INFO where ORDER_CODE=#{orderCode}
+ 	</select>
+ 	
+ 	<select id="queryERPOrderByCode" resultType="java.lang.Long" parameterType="String">
+        SELECT COUNT(*) FROM ERP_ORDER where ORDER_CODE=#{orderId} and ORDER_STATUS is not null
+ 	</select>
+ 	
+ 	<update id="updateOrderStatus" parameterType="String">
+	    update ORDER_INFO set ORDER_STATUS = &apos;C&apos;,CANCEL_REASON = #{cancelReason},
+	    UPDATE_USER = #{updateUser},UPDATE_DATE = sysdate WHERE ORDER_CODE = #{orderId}
+    </update>
+ 	
+ 	<select id="queryUnitByProductCode" resultType="com.want.po.ProductInfo" parameterType="String">
+        SELECT PRODUCT_NAME,UNIT_NAME FROM PRODUCT where PRODUCT_CODE=#{productCode}
+ 	</select>
+ 	
+ 	<insert id="insertERPOrder" parameterType="java.util.List">
+  		insert into ERP_ORDER (SID,ERP_ORDER_CODE,ORDER_CODE,PACKAGE_ID,CREATE_USER
+  			,CREATE_DATE,ORDER_STATUS,DESCIPTION,UPDATE_USER,UPDATE_DATE,MEMO) 
+  			select cd.* from (
+    	<foreach collection="list" item="item" index="index" separator="union all"> 
+    		select #{item.sid},#{item.erpOrderCode},#{item.orderCode}
+    		,#{item.packageId},#{item.createUser},#{item.createDate,jdbcType=TIMESTAMP}
+    		,#{item.orderStatus},#{item.desciption},#{item.updateUser}
+    		,#{item.updateDate,jdbcType=TIMESTAMP},#{item.memo} from dual
+    		</foreach>
+  		) cd
+  	</insert>
+  	
+  	<insert id="insertERPOrderDetail" parameterType="java.util.List">
+  	insert into ERP_ORDER_DETAIL (SID,ERP_ORDER_SID,PRODUCT_ID,PRODUCT_NAME,UNIT
+  	,UNIT_NAME,COUNT,SALE_PRICE,DISCOUNT_PRICE,SUM_AMOUNT,CREATE_USER,CREATE_DATE)
+    		select SEQ_ORDER_SID.nextval,cd.* from (
+    	<foreach collection="list" item="item" index="index" separator="union all">
+    		 select #{item.erpOrderSid},#{item.productId},#{item.productName}
+    		,#{item.unit},#{item.unitName},#{item.count},#{item.salePrice},#{item.discountPrice}
+    		,#{item.sumAmount},#{item.createUser},#{item.createDate,jdbcType=TIMESTAMP}
+			from dual
+  		</foreach>
+  		) cd
+  	</insert>
+  	
+ 	<select id="getProductAssignByCode" resultType="com.want.po.ProductAssign" parameterType="String">
+		select distinct SALE_COMPANY,DISTRIBUTION_CHANNEL
+        ,PRODUCT_GROUP,PRODUCT_CODE,CREATE_DATE,UPDATE_DATE
+		from PRODUCT_ASSIGN where PRODUCT_CODE=#{productCode}
+		and CUSTOMER_CODE=#{customerCode}
+ 	</select>
+  	
+  	<!--  -->
+   <resultMap type="com.want.dto.OrderInfoDto" id="orderInfoDtoMap">
+        <id column="ORDER_CODE" jdbcType="VARCHAR" property="orderCode"  />
+		<result column="SAP_BUYER_CODE" jdbcType="VARCHAR" property="sapBuyerCode" />
+		<result column="ORDER_TIME" jdbcType="TIMESTAMP" property="orderTime" />
+		<result column="MEMO" jdbcType="VARCHAR" property="memo" />
+		<result column="TOTAL_AMOUNT" jdbcType="NUMERIC" property="totalAmount" />
+		<result column="FACTORY_NAME" jdbcType="VARCHAR" property="deliveryCompany" />
+		
+		<result column="SAPBUYERNAME" jdbcType="VARCHAR" property="sapBuyerName" />
+		<result column="CREATEORDERTIME" jdbcType="VARCHAR" property="createOrderTime" />
+		<result column="UPDATEDATE" jdbcType="VARCHAR" property="updateDate" />
+		<result column="ORDERTYPE" jdbcType="VARCHAR" property="orderType" />				
+		<result column="ORDERSTATUS" jdbcType="VARCHAR" property="orderStatus" />				
+    </resultMap> 
+    <!--   -->
+   <resultMap type="com.want.dto.OrderDto" id="orderDtoMap">
+        <id column="ORDER_CODE" jdbcType="VARCHAR" property="orderCode"  />
+        <result column="ORDER_TIME" jdbcType="VARCHAR" property="orderTime" />
+		<result column="ABBREVIATION" jdbcType="VARCHAR" property="abbreviation" />
+		<result column="SAP_BUYER_CODE" jdbcType="VARCHAR" property="sapBuyerCode" />
+		<result column="FACTORY_NAME" jdbcType="VARCHAR" property="factoryName" />
+		<result column="FACTORY" jdbcType="VARCHAR" property="factory" />
+		<result column="CONTACT" jdbcType="VARCHAR" property="contact" />
+		<result column="CONTACT_PHONE" jdbcType="VARCHAR" property="contactPhone" />
+		<result column="ADDRESS" jdbcType="VARCHAR" property="address" />
+		<result column="ORDERTYPE" jdbcType="VARCHAR" property="orderType" />				
+		<result column="ORDERSTATUS" jdbcType="VARCHAR" property="orderStatus" />	
+		<result column="MEMO" jdbcType="VARCHAR" property="memo" />
+		<result column="TOTAL_AMOUNT" jdbcType="VARCHAR" property="totalAmount" />
+		<result column="CANCEL_REASON" jdbcType="VARCHAR" property="cancelReason" />
+   </resultMap> 
+   
+   <!--根据 客户编号，订单编号，下单时间 获取订单信息   -->   
+   <select id="queryOrderByCondition" resultMap="orderInfoDtoMap"  parameterType="com.want.vo.Order">
+	    SELECT A.SAP_BUYER_CODE,A.ORDER_CODE,A.ORDER_TIME,A.MEMO  
+		,(SELECT SUM(B.SUM_AMOUNT) FROM SALESGROUP2_RC.ORDER_DETAIL B  WHERE  A.ORDER_CODE=B.ORDER_CODE GROUP BY B.ORDER_CODE ) AS TOTAL_AMOUNT   
+		,F.FACTORY_NAME
+		,F.abbreviation as sapBuyerName
+		,to_char(A.CREATE_DATE,'yyyy-mm-dd hh24:mi:ss') as createOrderTime
+		,'' as updateDate
+		,a.ORDER_TYPE as ordertype
+		,(SELECT  ATTRIBUTE_VALUE FROM SALESGROUP2_RC.ATTRIBUTE_INFO attr where attr.STATUS='1' and attr.ATTRIBUTE_ID='ORDER_INFO.ORDER_STATUS' and attr.ATTRIBUTE_KEY = a.ORDER_STATUS ) as orderStatus
+		FROM  SALESGROUP2_RC.ORDER_INFO A 
+		LEFT JOIN SALESGROUP2_RC.customer F on F.customer_code=A.sap_buyer_code
+		and a.SALE_COMPANY =f.SALE_COMPANY  and a.DISTRIBUTION_CHANNEL =f.DISTRIBUTION_CHANNEL and a.PRODUCT_GROUP =f.PRODUCT_GROUP
+		<where>
+		    <if test="sapBuyerCode != null and sapBuyerCode != '' "> 
+				and a.SAP_BUYER_CODE =#{sapBuyerCode,jdbcType=VARCHAR}    
+			</if>
+		    <if test="orderCode != null and orderCode != '' "> 
+				and instr(a.ORDER_CODE,#{orderCode,jdbcType=VARCHAR})>0 
+			</if>			
+		    <if test="abbreviation != null and abbreviation != '' "> 
+				and instr(F.abbreviation,#{abbreviation,jdbcType=VARCHAR})>0             
+			</if>			
+		    <if test="orgId != null and orgId != '' "> 
+				and F.PARENT_CODE  in ( 
+					select org_id 
+					from SALESGROUP2_RC.ORGANIZATION  
+					where CONNECT_BY_ISLEAF=1  
+					start with ORG_ID = #{orgId,jdbcType=VARCHAR}  
+					connect by PARENT_ORG_ID = prior ORG_ID 
+				)				
+			</if>			
+		    <if test="sTime != null and sTime != '' "> 
+                and a.ORDER_TIME <![CDATA[ >= ]]> TO_DATE(CONCAT(#{sTime,jdbcType=VARCHAR},' 00:00:00') ,'YYYY-MM-DD HH24:MI:SS')
+            </if>
+            <if test="eTime != null and eTime != '' "> 
+                and a.ORDER_TIME <![CDATA[ <= ]]> TO_DATE(CONCAT(#{eTime,jdbcType=VARCHAR},' 23:59:59') ,'YYYY-MM-DD HH24:MI:SS')
+            </if>
+             <if test="orderType != null and orderType != '' "> 
+				and a.ORDER_TYPE =#{orderType,jdbcType=VARCHAR}    
+			</if>
+			 <if test="orderStatus != null and orderStatus != '' "> 
+				and a.ORDER_STATUS =#{orderStatus,jdbcType=VARCHAR}    
+			</if>
+		</where>	
+		ORDER BY A.CREATE_DATE   
+   </select>
+   <!--  根据 订单编号,获取SOCS需求订单信息  -->
+   <select id="getOrderInfos" resultMap="orderDtoMap" parameterType="java.lang.String">
+		SELECT DISTINCT 
+		A.ORDER_CODE,
+        to_char(A.ORDER_TIME,'yyyy-mm-dd') as ORDER_TIME,
+		B.SAP_BUYER_NAME as ABBREVIATION,
+		A.SAP_BUYER_CODE,
+		B.FACTORY_NAME,
+		B.FACTORY,
+		B.CONTACT,
+		B.CONTACT_PHONE,
+		C.ADDRESS,
+		A.MEMO,
+		(SELECT SUM(BB.SUM_AMOUNT) FROM SALESGROUP2_RC.ORDER_DETAIL BB  WHERE  A.ORDER_CODE=BB.ORDER_CODE GROUP BY BB.ORDER_CODE ) AS TOTAL_AMOUNT 
+		,a.ORDER_TYPE as ordertype
+		,(SELECT  ATTRIBUTE_VALUE FROM SALESGROUP2_RC.ATTRIBUTE_INFO attr where attr.STATUS='1' and attr.ATTRIBUTE_ID='ORDER_INFO.ORDER_STATUS' and attr.ATTRIBUTE_KEY = a.ORDER_STATUS ) as orderStatus
+		,A.CANCEL_REASON
+		FROM SALESGROUP2_RC.ORDER_INFO A
+		LEFT JOIN SALESGROUP2_RC.CUSTOMER B ON A.SAP_BUYER_CODE=B.CUSTOMER_CODE
+		and a.SALE_COMPANY =B.SALE_COMPANY  and a.DISTRIBUTION_CHANNEL =B.DISTRIBUTION_CHANNEL and a.PRODUCT_GROUP =B.PRODUCT_GROUP
+		LEFT JOIN SALESGROUP2_RC.CUSTOMER_RECEVER_ADDRESSES C ON A.SAP_RECEIVER_CODE=C.SAP_RECEIVER_CODE and B.CUSTOMER_CODE=C.CUSTOMER_CODE
+		<where>
+		    <if test="orderCode != null and orderCode != '' "> 
+				 A.ORDER_CODE =#{orderCode,jdbcType=VARCHAR}    
+			</if>			
+		</where>	
+   </select>
+   <!--  根据 订单编号,获取SOCS需求订单详情  -->
+   <select id="getOrderInfoDetails" resultType="com.want.dto.OrderDetailDto" parameterType="java.lang.String">
+		SELECT DISTINCT 
+		a.line_number as lineNumber,
+		a.order_code as orderCode,
+		a.PRODUCT_CODE as productCode,
+		b.prd_short_name as prdShortName,
+		b.product_name as productName,
+		a.PRICE as salePrice,
+		a.PRICE as discountPrice,
+		a.COUNT as prodCount,
+		a.unit as unit,
+		b.UNIT_NAME as unitName,
+		a.SUM_AMOUNT as sumAmount,
+		a.item_memo as itemMemo
+		FROM SALESGROUP2_RC.ORDER_DETAIL A
+		left JOIN SALESGROUP2_RC.PRODUCT         B ON A.PRODUCT_CODE=trim(B.PRODUCT_CODE)
+		<where>
+		         A.PRODUCT_TYPE='0'
+		    <if test="orderCode != null and orderCode != '' "> 
+				 and A.ORDER_CODE =#{orderCode,jdbcType=VARCHAR}    
+			</if>			
+		</where>	
+		union
+		SELECT DISTINCT 
+		a.line_number as lineNumber,
+		a.order_code as orderCode,
+		a.PRODUCT_CODE as productCode,
+		E.PACKAGE_NAME as prdShortName,
+		E.PACKAGE_NAME  as productName,
+		(select sum(SALE_PRICE*PROD_COUNT) from SALESGROUP2_RC.PACKAGE_DETAIL d where A.PRODUCT_CODE=D.PACKAGE_ID group by PACKAGE_ID) as salePrice,
+		a.PRICE as discountPrice,
+		a.COUNT as prodCount,
+		a.unit as unit,
+		E.UNIT_NAME as unitName,
+		a.SUM_AMOUNT as sumAmount,
+		a.item_memo as itemMemo
+		FROM SALESGROUP2_RC.ORDER_DETAIL A
+		left JOIN SALESGROUP2_RC.PACKAGE E       ON A.PRODUCT_CODE=E.PACKAGE_ID		
+		<where> 
+                A.PRODUCT_TYPE='1'
+		    <if test="orderCode != null and orderCode != '' "> 
+				and A.ORDER_CODE =#{orderCode,jdbcType=VARCHAR}    
+			</if>			
+		</where>	
+   </select>
+   <!--  根据 订单编号,获取采购订单信息  -->
+   <select id="getErpOrders" resultType="com.want.dto.ErpOrderDto" parameterType="java.lang.String">
+		select DISTINCT
+		a.sid,
+		a.order_code as orderCode,
+		(SELECT  ATTRIBUTE_VALUE FROM SALESGROUP2_RC.ATTRIBUTE_INFO attr where attr.STATUS='1' and attr.ATTRIBUTE_ID='ERP_ORDER_STATUS' and attr.ATTRIBUTE_KEY = a.ORDER_STATUS ) as orderStatus,
+		nvl(a.ERP_ORDER_CODE,a.DESCIPTION) as feedbackInfor,
+		to_char(b.order_time,'yyyy-mm-dd') as orderTime,
+		B.sale_company as saleCompnayId,
+		C.sale_compnay_name as saleCompnayName,
+		B.distribution_channel as distributionChannelId,
+		D.distribution_channel_name as distributionChannelName,
+		B.product_group as productGroupId,
+		E.product_group_name as productGroupName,
+		F.factory as companyId,
+		F.factory_name as companyName,
+		B.sap_buyer_code as sapBuyerId,
+		F.SAP_BUYER_NAME as sapBuyerName,
+		B.sap_receiver_code as sapReceiverId,
+		G.SAP_RECEIVER_NAME as sapReceiverName,
+		A.memo as memo,
+		(SELECT SUM(BB.SUM_AMOUNT) FROM SALESGROUP2_RC.ERP_ORDER_DETAIL BB  WHERE  A.sid=BB.erp_order_sid GROUP BY BB.erp_order_sid ) AS totalAmount
+		,A.DESCIPTION as desciption
+		,A.UPDATE_USER as updateUser
+		,to_char(A.UPDATE_DATE,'yyyy/mm/dd hh24:mi:ss') as updateDate
+		FROM SALESGROUP2_RC.erp_order A
+		LEFT JOIN SALESGROUP2_RC.order_info B ON A.order_code=B.order_code
+		LEFT JOIN SALESGROUP2_RC.channel_info C ON C.sale_compnay_id=B.sale_company
+		LEFT JOIN SALESGROUP2_RC.channel_info D ON D.distribution_channel_id=B.distribution_channel
+		LEFT JOIN SALESGROUP2_RC.channel_info E ON E.product_group_id=B.product_group
+		LEFT JOIN SALESGROUP2_RC.customer F ON F.CUSTOMER_CODE=B.SAP_BUYER_CODE and F.SALE_COMPANY =B.SALE_COMPANY  and F.DISTRIBUTION_CHANNEL =B.DISTRIBUTION_CHANNEL and F.PRODUCT_GROUP =B.PRODUCT_GROUP
+		LEFT JOIN SALESGROUP2_RC.CUSTOMER_RECEVER_ADDRESSES G ON G.SAP_RECEIVER_CODE=B.sap_receiver_code and F.CUSTOMER_CODE=G.CUSTOMER_CODE
+		<where>
+		    <if test="orderCode != null and orderCode != '' "> 
+				 A.ORDER_CODE =#{orderCode,jdbcType=VARCHAR}    
+			</if>			
+		</where>
+   </select>
+   <!--  根据 erp订单主键,获取采购订单信息  -->
+   <select id="getErpOrderBySid" resultType="com.want.dto.ErpOrderDto" parameterType="java.lang.String">
+        select DISTINCT
+		a.sid,
+		a.order_code as orderCode,
+		(SELECT  ATTRIBUTE_VALUE FROM SALESGROUP2_RC.ATTRIBUTE_INFO attr where attr.STATUS='1' and attr.ATTRIBUTE_ID='ERP_ORDER_STATUS' and attr.ATTRIBUTE_KEY = a.ORDER_STATUS ) as orderStatus,
+		nvl(a.ERP_ORDER_CODE,a.DESCIPTION) as feedbackInfor,
+		to_char(b.order_time,'yyyy-mm-dd') as orderTime,
+		B.sale_company as saleCompnayId,
+		C.sale_compnay_name as saleCompnayName,
+		B.distribution_channel as distributionChannelId,
+		D.distribution_channel_name as distributionChannelName,
+		B.product_group as productGroupId,
+		E.product_group_name as productGroupName,
+		F.factory as companyId,
+		F.factory_name as companyName,
+		B.sap_buyer_code as sapBuyerId,
+		F.SAP_BUYER_NAME as sapBuyerName,
+		B.sap_receiver_code as sapReceiverId,
+		G.SAP_RECEIVER_NAME as sapReceiverName,
+		a.memo as memo,
+		(SELECT SUM(BB.SUM_AMOUNT) FROM SALESGROUP2_RC.ERP_ORDER_DETAIL BB  WHERE  A.sid=BB.erp_order_sid GROUP BY BB.erp_order_sid ) AS totalAmount
+		,A.DESCIPTION as desciption
+		,A.UPDATE_USER as updateUser
+		,to_char(A.UPDATE_DATE,'yyyy/mm/dd hh24:mi:ss') as updateDate
+		FROM SALESGROUP2_RC.erp_order A
+		LEFT JOIN SALESGROUP2_RC.order_info B ON A.order_code=B.order_code
+		LEFT JOIN SALESGROUP2_RC.PACKAGE P ON A.PACKAGE_ID=P.PACKAGE_ID
+		LEFT JOIN SALESGROUP2_RC.channel_info C ON C.sale_compnay_id=B.sale_company
+		LEFT JOIN SALESGROUP2_RC.channel_info D ON D.distribution_channel_id=B.distribution_channel
+		LEFT JOIN SALESGROUP2_RC.channel_info E ON E.product_group_id=B.product_group
+		LEFT JOIN SALESGROUP2_RC.customer F ON F.CUSTOMER_CODE=B.SAP_BUYER_CODE and F.SALE_COMPANY =B.SALE_COMPANY  and F.DISTRIBUTION_CHANNEL =B.DISTRIBUTION_CHANNEL and F.PRODUCT_GROUP =B.PRODUCT_GROUP
+		LEFT JOIN SALESGROUP2_RC.CUSTOMER_RECEVER_ADDRESSES G ON G.SAP_RECEIVER_CODE=B.sap_receiver_code and F.CUSTOMER_CODE=G.CUSTOMER_CODE
+		 <where>
+            <if test="sid != null and sid != '' "> 
+                 a.sid =#{sid,jdbcType=VARCHAR}    
+            </if>           
+        </where>
+   </select>
+   <!--  根据 订单编号,获取采购订单详情  -->
+   <select id="getErpOrderInfoDetails" resultType="com.want.dto.ErpOrderDetailDto" parameterType="java.lang.String">
+		select DISTINCT
+		a.sid as lineNumber,
+		a.product_id as productId,
+		a.product_name as productName,
+		g.STOCK_ADDRES_ID as stockAddresId,
+		g.STOCK_ADDRES_DESC as stockAddres,
+		a.sale_price as salePrice,
+		a.discount_price as discountPrice,
+		a.count as count,
+		a.unit as unit,
+		a.UNIT_NAME as unitName,
+		a.sum_amount as sumAmount,
+		a.DESCIPTION as itemMemo
+		FROM SALESGROUP2_RC.erp_order_detail A
+		LEFT JOIN SALESGROUP2_RC.erp_order C on C.sid=A.erp_order_sid
+		LEFT JOIN SALESGROUP2_RC.order_info E on E.order_code=C.order_code
+		LEFT JOIN SALESGROUP2_RC.customer F on F.customer_code=E.sap_receiver_code and F.SALE_COMPANY = E.SALE_COMPANY  and F.DISTRIBUTION_CHANNEL = E.DISTRIBUTION_CHANNEL and F.PRODUCT_GROUP = E.PRODUCT_GROUP
+		LEFT JOIN SALESGROUP2_RC.company_stock_address G on G.SELL_COMPNAY_ID=F.factory
+		<where>
+		    <if test="erpOrderSid != null and erpOrderSid != '' "> 
+				 A.ERP_ORDER_SID =#{erpOrderSid,jdbcType=VARCHAR}    
+			</if>			
+		</where>
+		ORDER BY a.product_name
+   </select>
+   <!--  将erp 返回 erp订单编码，状态，错误原因根据订单编码更新   -->
+   <update id="updateErpOrder" parameterType="java.util.Map">
+        update SALESGROUP2_RC.erp_order
+        <set>
+              <if test="orderStatus != null and orderStatus != '' ">
+                 order_status = #{orderStatus,jdbcType=VARCHAR} ，
+              </if>
+              <if test="erpOrderCode != null and erpOrderCode != '' ">
+                 erp_order_code = #{erpOrderCode,jdbcType=VARCHAR} ，
+              </if>
+              desciption = #{desciption,jdbcType=VARCHAR} ，
+              <if test="empInfo != null and empInfo != '' ">
+                  update_user =#{empInfo,jdbcType=VARCHAR} ,
+              </if>
+              <if test="currentDate != null and currentDate != '' ">
+                  update_date = to_date( #{currentDate,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss') 
+              </if>
+        </set>
+        where sid = #{orderCode,jdbcType=VARCHAR}
+   </update>
+   <!-- 将erp 返回 erp订单详情编码，状态，错误原因根据订单明细编码更新 -->
+   <update id="updateErpOrderDetail" parameterType="java.util.List">
+	    <foreach collection="list" item="item" index="index" open="begin" close=";end;" separator=";">
+	       update SALESGROUP2_RC.erp_order_detail
+	       <set>
+                 desciption = #{item.desciption,jdbcType=VARCHAR} ，
+	          <if test="item.erpOrderLine != null and item.erpOrderLine != '' ">
+                 erp_order_line = #{item.erpOrderLine,jdbcType=VARCHAR} ，
+              </if>
+	          create_date = sysdate
+	       </set>
+	       where sid = #{item.sid,jdbcType=VARCHAR}
+	   </foreach>     
+   </update>
+   <!-- 检查ERP_ORDER表的订单状态 -->
+   <select id="checkErpOrderStatus" parameterType="java.lang.String" resultType="java.util.Map">
+        SELECT  
+	    ORDER_CODE,
+	    DECODE(ORDER_STATUS,'C','已取消','S','已处理','未处理') AS ORDER_STATUS
+	    FROM SALESGROUP2_RC.ERP_ORDER A
+        <where>
+            <if test="sid != null and sid != '' "> 
+			    A.SID = #{sid,jdbcType=VARCHAR}    
+			</if>
+        </where>
+   </select>
+   <!-- 更新ERP_ORDER表的订单状态 -->
+   <update id="updateErpOrderStatus" parameterType="java.util.Map">
+        update SALESGROUP2_RC.erp_order
+        <set>
+              <if test="orderStatus != null and orderStatus != '' ">
+                  order_status = #{orderStatus,jdbcType=VARCHAR} ，
+              </if>
+              <if test="desciption != null and desciption != '' ">
+                  desciption = #{desciption,jdbcType=VARCHAR} ，
+              </if>
+              <if test="empInfo != null and empInfo != '' ">
+                  update_user =#{empInfo,jdbcType=VARCHAR} ,
+              </if>
+              <if test="currentDate != null and currentDate != '' ">
+                  update_date = to_date( #{currentDate,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss') 
+              </if>
+        </set>
+        where sid = #{sid,jdbcType=VARCHAR}
+   </update>
+   
+   <!-- 根据orderCode 查询 erp_order订单状态 -->
+   <select id="checkErpOrderAllStatus" parameterType="java.lang.String" resultType="java.util.Map">
+	    SELECT 
+		ORDER_CODE,
+		CASE 
+		    WHEN COUNT(1) = COUNT(DECODE(ORDER_STATUS,'C',1))       THEN '已取消'
+		    WHEN COUNT(1) = COUNT(DECODE(ORDER_STATUS,'S',1,'C',1)) THEN '已处理'
+		    ELSE '未处理'
+		END AS ORDER_STATUS
+		FROM SALESGROUP2_RC.ERP_ORDER
+		<where>
+		    <if test="orderCode != null and orderCode != '' "> 
+				ORDER_CODE =#{orderCode,jdbcType=VARCHAR}    
+			</if>
+		</where>
+		GROUP BY ORDER_CODE
+   </select>
+   
+   <!-- 更新ORDER_INFO表的订单状态  -->
+   <update id="updateOrderInfoStatus" parameterType="java.util.Map">
+        update SALESGROUP2_RC.ORDER_INFO
+        <set>
+              <if test="orderStatus != null and orderStatus != '' ">
+                   ORDER_STATUS = #{orderStatus,jdbcType=VARCHAR} 
+              </if>
+        </set> 
+        where ORDER_CODE = #{orderCode,jdbcType=VARCHAR}
+   </update>
+   <!-- 获取配置属性  -->
+   <select id="getAttributeInfo" parameterType="java.util.Map" resultType="com.want.dto.AttributeInfo"> 
+		SELECT 
+		ATTRIBUTE_KEY as attributeKey ,
+		ATTRIBUTE_VALUE as attributeValue ,
+		ATTRIBUTE_ID as attributeId ,
+		ATTRIBUTE_NAME as attributeName 
+		FROM SALESGROUP2_RC.ATTRIBUTE_INFO 
+		WHERE STATUS='1'
+		<if test="attributeKey != null and attributeKey != '' ">
+		    AND ATTRIBUTE_KEY = #{attributeKey,jdbcType=VARCHAR} 
+		</if>
+		<if test="attributeValue != null and attributeValue != '' ">
+		    AND ATTRIBUTE_VALUE = #{attributeValue,jdbcType=VARCHAR} 
+		</if>
+		<if test="attributeId != null and attributeId != '' ">
+		    AND ATTRIBUTE_ID = #{attributeId,jdbcType=VARCHAR} 
+		</if>
+		<if test="attributeName != null and attributeName != '' ">
+		    AND ATTRIBUTE_NAME = #{attributeName,jdbcType=VARCHAR} 
+		</if>
+   </select>
+   <!--  -->
+    
+</mapper> 

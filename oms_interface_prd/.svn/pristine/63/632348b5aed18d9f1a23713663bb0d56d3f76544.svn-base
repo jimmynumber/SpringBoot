@@ -1,0 +1,3 @@
+#  prd
+spring.datasource187.jndi-name = java:comp/env/jdbc/oracle187shqwtxywdb/salesgroup2_rc
+spring.datasource188.jndi-name = java:comp/env/jdbc/oracle188bpmreport/SALESGROUP2_ODS

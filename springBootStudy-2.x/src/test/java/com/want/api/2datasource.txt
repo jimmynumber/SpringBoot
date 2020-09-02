@@ -1,0 +1,109 @@
+append pom.xml
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
+append application.properties
+# pring boot 1.x的配置：spring.datasource.primary.url=jdbc:mysql://localhost:3306/test1
+spring.datasource.primary.jdbc-url=jdbc:mysql://localhost:3306/test1
+spring.datasource.primary.username=root
+spring.datasource.primary.password=123456
+spring.datasource.primary.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# spring boot 1.x的配置：spring.datasource.secondary.url=jdbc:mysql://localhost:3306/test2
+spring.datasource.secondary.jdbc-url=jdbc:mysql://localhost:3306/test2
+spring.datasource.secondary.username=root
+spring.datasource.secondary.password=123456
+spring.datasource.secondary.driver-class-name=com.mysql.cj.jdbc.Driver
+
+package com.didispace.chapter37;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
+import javax.sql.DataSource;
+@Configuration
+public class DataSourceConfiguration {
+    @Primary
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.primary")
+    public DataSource primaryDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.secondary")
+    public DataSource secondaryDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+    @Bean
+    public JdbcTemplate primaryJdbcTemplate(@Qualifier("primaryDataSource") DataSource primaryDataSource) {
+        return new JdbcTemplate(primaryDataSource);
+    }
+    @Bean
+    public JdbcTemplate secondaryJdbcTemplate(@Qualifier("secondaryDataSource") DataSource secondaryDataSource) {
+        return new JdbcTemplate(secondaryDataSource);
+    }
+}
+
+package com.didispace.chapter37;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.junit4.SpringRunner;
+
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class Chapter37ApplicationTests {
+
+    @Autowired
+    protected JdbcTemplate primaryJdbcTemplate;
+
+    @Autowired
+    protected JdbcTemplate secondaryJdbcTemplate;
+
+    @Before
+    public void setUp() {
+        primaryJdbcTemplate.update("DELETE  FROM  USER ");
+        secondaryJdbcTemplate.update("DELETE  FROM  USER ");
+    }
+
+    @Test
+    public void test() throws Exception {
+        // 往第一个数据源中插入 2 条数据
+        primaryJdbcTemplate.update("insert into user(name,age) values(?, ?)", "aaa", 20);
+        primaryJdbcTemplate.update("insert into user(name,age) values(?, ?)", "bbb", 30);
+
+        // 往第二个数据源中插入 1 条数据，若插入的是第一个数据源，则会主键冲突报错
+        secondaryJdbcTemplate.update("insert into user(name,age) values(?, ?)", "ccc", 20);
+
+        // 查一下第一个数据源中是否有 2 条数据，验证插入是否成功
+        Assert.assertEquals("2", primaryJdbcTemplate.queryForObject("select count(1) from user", String.class));
+
+        // 查一下第一个数据源中是否有 1 条数据，验证插入是否成功
+        Assert.assertEquals("1", secondaryJdbcTemplate.queryForObject("select count(1) from user", String.class));
+    }
+
+}
+
+

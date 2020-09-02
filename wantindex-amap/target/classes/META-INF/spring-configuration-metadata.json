@@ -1,0 +1,529 @@
+{
+  "hints": [],
+  "groups": [
+    {
+      "sourceType": "com.want.amap.MysqlDataSourceConfig",
+      "name": "spring.datasource.mysql",
+      "sourceMethod": "mysqlDataSource()",
+      "type": "org.apache.tomcat.jdbc.pool.DataSource"
+    },
+    {
+      "sourceType": "com.want.amap.OracleDataSourceConfig",
+      "name": "spring.datasource.oracle",
+      "sourceMethod": "oracleDataSource()",
+      "type": "org.apache.tomcat.jdbc.pool.DataSource"
+    }
+  ],
+  "properties": [
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.abandon-when-percentage-full",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.access-to-underlying-connection-allowed",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.alternate-username-allowed",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.commit-on-return",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.connection-properties",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.data-source",
+      "type": "java.lang.Object"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.data-source-j-n-d-i",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.db-properties",
+      "type": "java.util.Properties"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.default-auto-commit",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.default-catalog",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.default-read-only",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.default-transaction-isolation",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.driver-class-name",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.fair-queue",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.ignore-exception-on-pre-load",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.init-s-q-l",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.initial-size",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.jdbc-interceptors",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.jmx-enabled",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.log-abandoned",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.log-validation-errors",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.login-timeout",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.max-active",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.max-age",
+      "type": "java.lang.Long"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.max-idle",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.max-wait",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.min-evictable-idle-time-millis",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.min-idle",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.name",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.num-tests-per-eviction-run",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.password",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.propagate-interrupt-state",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.remove-abandoned",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.remove-abandoned-timeout",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.rollback-on-return",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.suspect-timeout",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.test-on-borrow",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.test-on-connect",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.test-on-return",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.test-while-idle",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.time-between-eviction-runs-millis",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.url",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.use-disposable-connection-facade",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.use-equals",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.use-lock",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.use-statement-facade",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.username",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.validation-interval",
+      "type": "java.lang.Long"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.validation-query",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.validation-query-timeout",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.mysql.validator-class-name",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.abandon-when-percentage-full",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.access-to-underlying-connection-allowed",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.alternate-username-allowed",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.commit-on-return",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.connection-properties",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.data-source",
+      "type": "java.lang.Object"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.data-source-j-n-d-i",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.db-properties",
+      "type": "java.util.Properties"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.default-auto-commit",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.default-catalog",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.default-read-only",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.default-transaction-isolation",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.driver-class-name",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.fair-queue",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.ignore-exception-on-pre-load",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.init-s-q-l",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.initial-size",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.jdbc-interceptors",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.jmx-enabled",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.log-abandoned",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.log-validation-errors",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.login-timeout",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.max-active",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.max-age",
+      "type": "java.lang.Long"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.max-idle",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.max-wait",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.min-evictable-idle-time-millis",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.min-idle",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.name",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.num-tests-per-eviction-run",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.password",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.propagate-interrupt-state",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.remove-abandoned",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.remove-abandoned-timeout",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.rollback-on-return",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.suspect-timeout",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.test-on-borrow",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.test-on-connect",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.test-on-return",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.test-while-idle",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.time-between-eviction-runs-millis",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.url",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.use-disposable-connection-facade",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.use-equals",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.use-lock",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.use-statement-facade",
+      "type": "java.lang.Boolean"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.username",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.validation-interval",
+      "type": "java.lang.Long"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.validation-query",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.validation-query-timeout",
+      "type": "java.lang.Integer"
+    },
+    {
+      "sourceType": "org.apache.tomcat.jdbc.pool.DataSource",
+      "name": "spring.datasource.oracle.validator-class-name",
+      "type": "java.lang.String"
+    }
+  ]
+}

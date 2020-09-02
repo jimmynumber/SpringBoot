@@ -1,0 +1,23 @@
+package com.want.mapper;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import com.want.dto.BatchStatusDto;
+
+@Mapper
+public interface BatchStatusMapper {
+   	String FUNC_STATUS_FAILED = "0";      // 失败
+	String FUNC_STATUS_SUCCESSED = "1";   // 成功
+	String FUNC_STATUS_RUNNING = "2";     // 执行中
+    //检查是否存在同一信息
+    boolean checkBatchStatusExist(@Param("sid")String sid);
+    
+	// 写入资料
+	void insertBatchStatus(BatchStatusDto batchStatus);
+	
+	// 修改资料
+	void updateBatchStatus(BatchStatusDto batchStatus);
+	
+	
+}

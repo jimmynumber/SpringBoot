@@ -1,0 +1,125 @@
+package com.want.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.want.dto.Customer;
+import com.want.dto.OT_RETURN;
+import com.want.dto.ProductInfoDto;
+import com.want.dto.ProductLevelDto;
+import com.want.po.PackageInfo;
+import com.want.service.ICreateOrderService;
+import com.want.service.IOrderWebService;
+import com.want.vo.IT_EKKO;
+import com.want.vo.IT_EKPO;
+import com.want.vo.OrderDetail;
+import com.want.vo.OrderInfo;
+
+@CrossOrigin
+@RestController 
+public class CreateOrderController {
+	
+	@Autowired
+    private IOrderWebService webService;
+	
+	@Autowired
+    private ICreateOrderService service;
+	
+	// 创建订单
+	@PostMapping("/createOrder") 
+	public OT_RETURN createOrder(@RequestBody OrderInfo orderInfo) { 
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+		Date date=new Date();
+		IT_EKKO order=new IT_EKKO();
+		List<IT_EKPO> orderDetail=new ArrayList<IT_EKPO>();
+		order.setORDER_CODE(sdf.format(date)+orderInfo.getSapBuyerCode());
+		order.setSALE_COMPANY(orderInfo.getSaleCompany());
+		order.setDISTRIBUTION_CHANNEL(orderInfo.getDistributionChannel());
+		order.setPRODUCT_GROUP(orderInfo.getProductGroup());
+		order.setSAP_BUYER_CODE(orderInfo.getSapBuyerCode());
+		order.setORDER_TIME(sdf.format(date));
+		order.setSAP_RECEIVER_CODE(orderInfo.getSapReceiverCode());
+		order.setMEMO(orderInfo.getMemo());
+		order.setCREATE_USER(orderInfo.getCreateUser());
+		order.setCREATE_DATE(sdf.format(date));
+		order.setORDER_TYPE(orderInfo.getOrderType());
+		List<OrderDetail> OrderDetails=orderInfo.getOrderDetail();
+		for(int i=0;i<OrderDetails.size();i++) {
+			IT_EKPO orderDetail1=new IT_EKPO();
+			OrderDetail orderDetail2=OrderDetails.get(i);
+			orderDetail1.setLINE_NUMBER(i+1+"");
+			orderDetail1.setORDER_CODE(order.getORDER_CODE());
+			orderDetail1.setPRODUCT_CODE(orderDetail2.getProductCode());
+			orderDetail1.setPRICE(orderDetail2.getPrice());
+			orderDetail1.setUNIT(orderDetail2.getUnit());
+			orderDetail1.setCOUNT(orderDetail2.getCount());
+			orderDetail1.setSALE_TYPE(orderDetail2.getSaleType());
+			orderDetail1.setSUM_AMOUNT(orderDetail2.getSumAmount());
+			orderDetail1.setITEM_MEMO(orderDetail2.getItemMemo());
+			orderDetail.add(orderDetail1);	
+		}
+		return webService.syncOrder(order, orderDetail);
+	} 
+	
+	// 获取礼包信息
+	@GetMapping("/packageList") 
+	public List<PackageInfo> packageList(String saleCompany,String distributionChannel,String productGroup) { 
+		return service.packageList(saleCompany,distributionChannel,productGroup); 
+	} 
+	
+	@GetMapping("/customerList") 
+	public List<Customer> customerList(String userId,String customerId,String customerName) { 
+		return service.customerList(userId,customerId,customerName); 
+	} 
+	
+	@GetMapping("/queryProdPrice") 
+	public List<ProductInfoDto> queryProdPrice(@RequestParam(required = false) Map<String, String> map) { 
+		return service.queryProdPrice(map);
+	} 
+	
+	/** 
+	* @Title: 查询品项信息 
+	* @Desc:  促销组合和一般订单
+	* @author 0032055   
+	* @date   2019-11-12 11:13:00 
+	* @param  Map<String,String>
+	* @return List<ProductInfoDto>
+	* @throws 
+	* @UpdateUser:   
+	* @UpdateDate:   
+	* @UpdateRemark: 
+	* @version V1.0  
+	*/
+	@GetMapping("/queryProdByCondition") 
+	public List<ProductInfoDto> queryProdByCondition(@RequestParam(required = false) Map<String, String> map) { 
+		return service.queryProdByCondition(map);
+	} 
+	/** 
+	* @Title: 创建订单需求 
+	* @Desc:  获取产品大类和产品线别
+	* @author 0032055   
+	* @date   2019-11-14 15:56:00 
+	* @param  Map<String,String>
+	* @return List<ProductLevelDto>
+	* @throws 
+	* @UpdateUser:   
+	* @UpdateDate:   
+	* @UpdateRemark: 
+	* @version V1.0  
+	*/
+	@GetMapping("/getProductLevel") 
+	public List<ProductLevelDto> getProductLevel(@RequestParam(required = false) Map<String, String> map) { 
+		return service.getProductLevel(map);
+	} 
+	
+	
+}
